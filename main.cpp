@@ -4,7 +4,7 @@
 #include <assert.h>
 #include <stdio.h>
 
-#include <conio.h>
+//#include <conio.h>
 
 #define SCREEN_HEIGHT 100
 #define SCREEN_WIDTH 100
@@ -97,7 +97,6 @@ void glwt_draw(float time)
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
-
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
@@ -108,7 +107,13 @@ int main(int argc, char *argv[])
 #endif
 {
 	FILE* file = nullptr;
-	fopen_s(&file, "Tetris.gb", "rb");
+    const char* filePath = "Tetris.gb";
+#ifdef _WIN32
+	fopen_s(&file, filePath, "rb");
+#else
+    file = fopen(filePath, "rb");
+#endif
+    
 	if (file == nullptr)
 		return 1;
 	fseek(file, 0, SEEK_END);

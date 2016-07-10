@@ -77,14 +77,14 @@ extern "C" {
 
 	float elapsedSeconds = (float)elapsed * 0.000000001f;
 
-	draw(elapsedSeconds);
+	glwt_draw(elapsedSeconds);
 
 	glSwapAPPLE();
 }
 
 @end
 
-int initglwt(const char* title, int width, int height, bool fullscreen)
+int glwt_init(const char* title, int width, int height, bool fullscreen)
 {
 	[NSApplication sharedApplication];
 	[NSApp setActivationPolicy : NSApplicationActivationPolicyRegular];

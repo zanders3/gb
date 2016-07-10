@@ -102,7 +102,7 @@ void GB_load(u8* rom, u32 romLength)
 
 void undefined() 
 {
-	logf("\t\taf = % 04X bc = % 04X de = % 04X hl = % 04X sp = % 04X pc = % 04X z = %d n = %d h = %d c = %d\n", gb.af, gb.bc, gb.de, gb.hl, gb.sp, gb.pc, gb.flags.z, gb.flags.n, gb.flags.h, gb.flags.c);
+	logf("\t\taf = %04X bc = %04X de = %04X hl = %04X sp = %04X pc = %04X z = %d n = %d h = %d c = %d\n", gb.af, gb.bc, gb.de, gb.hl, gb.sp, gb.pc, gb.flags.z, gb.flags.n, gb.flags.h, gb.flags.c);
 	logf("Unimplemented!\n");
 }
 
@@ -158,25 +158,25 @@ void dec8(u8& reg)
 	gb.flags.n = true;
 }
 
-void xor(u8 reg)
-{
-	gb.a = gb.a ^ reg;
-	gb.flags.flags = 0;
-	gb.flags.z = gb.a == 0;
-}
-
-void or(u8 reg)
+void or8(u8 reg)
 {
 	gb.a = gb.a | reg;
 	gb.flags.flags = 0;
 	gb.flags.z = gb.a == 0;
 }
 
-void cp(u8 val)
+void cp8(u8 val)
 {
 	gb.flags.z = gb.a == val;
 	gb.flags.n = true;
 	gb.flags.c = gb.a < val;
+}
+
+void xor8(u8 reg)
+{
+	gb.a = gb.a ^ reg;
+	gb.flags.flags = 0;
+	gb.flags.z = gb.a == 0;
 }
 
 void GB_gputick();

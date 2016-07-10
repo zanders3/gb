@@ -1,5 +1,8 @@
 #pragma once
 
+#include <cstdlib>
+using namespace std;
+
 typedef unsigned int u32;
 typedef unsigned short u16;
 typedef unsigned char u8;
@@ -70,5 +73,5 @@ struct GB
 
 } extern gb;
 
-void GB_load(u8* rom, size_t romLength);
+void GB_load(u8* rom, u32 romLength);
 bool GB_tick();
