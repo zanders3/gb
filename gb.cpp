@@ -1,7 +1,7 @@
 
 //http://marc.rawer.de/Gameboy/Docs/GBCPUman.pdf
 //http://gameboy.mongenel.com/dmg/opcodes.html
-//http://imra0x%04Xazar.com/Gameboy-Z80-Opcode-Map
+//http://imrannazar.com/Gameboy-Z80-Opcode-Map
 //http://bgb.bircd.org/pandocs.htm#videodisplay
 
 #include "gb.h"
@@ -21,8 +21,6 @@ void logf(char const* const format, ...)
 	buffer[num] = '\0';
 	OutputDebugStringA(buffer);
 }
-#else
-#define logf printf
 #endif
 
 GB gb;
@@ -33,6 +31,13 @@ const char* instructionDisassembly[256] =
 #include "opcodes.h"
 };
 #undef INST
+
+#define EXT_INST(code, disassembly, function) disassembly,
+const char* extendedInstructionDisassembly[256] =
+{
+#include "extendedopcodes.h"
+};
+#undef EXT_INST
 
 #define INST(disassembly, opCodeLength, function, opCodeTicks) opCodeLength,
 const u8 instructionOpCodeLength[256] =
@@ -126,6 +131,30 @@ void ret()
 	gb.pc = readMemory16(gb.sp);
 }
 
+void rst(u8 n)
+{
+	writeMemory16(gb.sp, gb.pc);
+	gb.pc = n;
+	gb.sp -= 2;
+}
+
+void add8(u8 reg)
+{
+	gb.flags.h = gb.a > 0 && (reg & 0xF) > (0xF - gb.a);
+	gb.flags.c = gb.a > 0 && reg > (0xFF - gb.a);
+	gb.a += (u8)reg;
+	gb.flags.z = gb.a == 0;
+	gb.flags.n = false;
+}
+
+void addhl16(u16 reg)
+{
+	gb.flags.h = gb.hl > 0 && (reg & 0xFFF) > (0xFFF - gb.hl);
+	gb.flags.c = gb.hl > 0 && reg > (0xFFFF - gb.hl);
+	gb.hl += reg;
+	gb.flags.n = false;
+}
+
 void inc16(u16& reg)
 {
 	gb.flags.h = reg == ((u16)-1);
@@ -179,20 +208,74 @@ void xor8(u8 reg)
 	gb.flags.z = gb.a == 0;
 }
 
+void and8(u8 reg)
+{
+	gb.a = gb.a & reg;
+	gb.flags.z = gb.a == 0;
+	gb.flags.n = false;
+	gb.flags.h = true;
+	gb.flags.c = false;
+}
+
+void swap8(u8& reg)
+{
+	u8 tmp = reg;
+	reg = (tmp >> 4) | ((tmp & 0xF) << 4);
+	gb.flags.flags = 0;
+	gb.flags.z = reg == 0;
+}
+
+void pop16(u16& reg)
+{
+	gb.sp += 2;
+	reg = readMemory16(gb.sp);
+}
+
+void push16(u16& reg)
+{
+	writeMemory16(gb.sp, reg);
+	gb.sp -= 2;
+}
+
+void extops()
+{
+	u8 extopcode = gb.memory[gb.pc-1];
+#define EXT_INST(code, disassembly, function) case code: function break;
+	switch (extopcode)
+	{
+#include "extendedopcodes.h"
+	}
+#undef INST
+}
+
 void GB_gputick();
+
+bool g_disassemble = false;
+u16 g_breakpoint = 0x309;
 
 bool GB_tick()
 {
+	if (gb.pc == g_breakpoint)
+	{
+		g_disassemble = true;
+	}
+
 	//decode instruction
 	const u8 opcode = gb.memory[gb.pc];
-	const u32 opcodeLength = instructionOpCodeLength[opcode];
+	u32 opcodeLength = instructionOpCodeLength[opcode];
 	if (opcodeLength == 2)
 		gb.nn = gb.memory[gb.pc + 1];
 	else if (opcodeLength == 3)
 		gb.nn = gb.memory[gb.pc + 1] | (gb.memory[gb.pc + 2] << 8);
 
+	if (g_disassemble)
 	{
 		const char* disassembly = instructionDisassembly[opcode];
+		if (opcode == 0xCB)//extended opcodes
+		{
+			u8 extOpcode = gb.memory[gb.pc + 1];
+			disassembly = extendedInstructionDisassembly[extOpcode];
+		}
 		logf("%04X ", gb.pc);
 		if (opcodeLength > 1)
 			logf(disassembly, gb.nn);

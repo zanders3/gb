@@ -124,6 +124,7 @@
     <ClCompile Include="memory.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="extendedopcodes.h" />
     <ClInclude Include="gb.h" />
     <ClInclude Include="glwt.h" />
     <ClInclude Include="memory.h" />

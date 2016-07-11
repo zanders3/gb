@@ -7,6 +7,12 @@ typedef unsigned int u32;
 typedef unsigned short u16;
 typedef unsigned char u8;
 
+#ifdef _WIN32
+void logf(char const* const format, ...);
+#else
+#define logf printf
+#endif
+
 //http://bgb.bircd.org/pandocs.htm
 
 struct GB
