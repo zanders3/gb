@@ -166,7 +166,7 @@ void inc16(u16& reg)
 void inc8(u8& reg)
 {
 	gb.flags.h = reg == ((u8)-1);
-	reg -= 1;
+	reg += 1;
 	gb.flags.z = reg == 0;
 	gb.flags.n = false;
 }
@@ -237,6 +237,11 @@ void push16(u16& reg)
 	gb.sp -= 2;
 }
 
+void res8(u32 index, u8& reg)
+{
+	reg = reg & ~(1 << index);
+}
+
 void extops()
 {
 	u8 extopcode = gb.memory[gb.pc-1];
@@ -251,7 +256,7 @@ void extops()
 void GB_gputick();
 
 bool g_disassemble = false;
-u16 g_breakpoint = 0x309;
+u16 g_breakpoint = 0x284F;
 
 bool GB_tick()
 {

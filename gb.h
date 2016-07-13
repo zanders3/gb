@@ -6,6 +6,9 @@ using namespace std;
 typedef unsigned int u32;
 typedef unsigned short u16;
 typedef unsigned char u8;
+typedef short i16;
+typedef int i32;
+typedef char i8;
 
 #ifdef _WIN32
 void logf(char const* const format, ...);
