@@ -3,12 +3,10 @@
 #include "gb.h"
 #include <assert.h>
 #include <stdio.h>
+#include "display.h"
 
 //#include <conio.h>
 
-#define SCREEN_HEIGHT 100
-#define SCREEN_WIDTH 100
-u8 screenData[SCREEN_HEIGHT][SCREEN_WIDTH][4];
 u32 screenTexture;
 
 float tris[] = {
@@ -38,13 +36,10 @@ const char* fragment_shader =
 
 void glwt_setup()
 {
-	//memset(chip8->screen, 0, sizeof(chip8->screen));
-
 	glEnable(GL_TEXTURE_2D);
 	glGenTextures(1, &screenTexture);
 	glBindTexture(GL_TEXTURE_2D, screenTexture);
 	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, SCREEN_WIDTH, SCREEN_HEIGHT);
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, screenData);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -93,7 +88,7 @@ void glwt_draw(float time)
 		scanlineCompleted = GB_tick();
 	}
 
-	//glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, chip8->screen);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, static_cast<const GLvoid*>(GB_gpuscreen()));
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -125,6 +120,7 @@ int main(int argc, char *argv[])
 	fclose(file);
 
 	GB_load(rom, len);
+	GB_gpuinit();
 
 	return glwt_init("GB", SCREEN_WIDTH * 2, SCREEN_HEIGHT * 2, false);
 }

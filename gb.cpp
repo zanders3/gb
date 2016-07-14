@@ -2,11 +2,11 @@
 //http://marc.rawer.de/Gameboy/Docs/GBCPUman.pdf
 //http://gameboy.mongenel.com/dmg/opcodes.html
 //http://imrannazar.com/Gameboy-Z80-Opcode-Map
-//http://bgb.bircd.org/pandocs.htm#videodisplay
 
 #include "gb.h"
 #include <memory>
 #include "memory.h"
+#include "display.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -41,13 +41,6 @@ const char* extendedInstructionDisassembly[256] =
 
 #define INST(disassembly, opCodeLength, function, opCodeTicks) opCodeLength,
 const u8 instructionOpCodeLength[256] =
-{
-#include "opcodes.h"
-};
-#undef INST
-
-#define INST(disassembly, opCodeLength, function, opCodeTicks) opCodeTicks,
-const u8 instructionOpCodeTicks[256] =
 {
 #include "opcodes.h"
 };
@@ -253,10 +246,8 @@ void extops()
 #undef INST
 }
 
-void GB_gputick();
-
 bool g_disassemble = false;
-u16 g_breakpoint = 0x284F;
+u16 g_breakpoint = 0xFFFF;
 
 bool GB_tick()
 {
@@ -298,64 +289,5 @@ bool GB_tick()
 	}
 #undef INST
 
-	//tick gpu
-	bool scanlineComplete = false;
-	{
-		u8 elapsedTicks = instructionOpCodeTicks[opcode];
-		gb.gpu.modeclock += elapsedTicks;
-		switch (gb.gpu.mode)
-		{
-		case 2://LCD reading from OAM memory
-			if (gb.gpu.modeclock >= 80)
-			{
-				gb.gpu.modeclock = 0;
-				gb.gpu.mode = 3;
-			}
-			break;
-		case 3://LCD reading from OAM and VRAM
-			if (gb.gpu.modeclock >= 172)
-			{
-				gb.gpu.modeclock = 0;
-				gb.gpu.mode = 0;
-			}
-			break;
-		case 0://H-Blank period
-			if (gb.gpu.modeclock >= 204)
-			{
-				gb.gpu.modeclock = 0;
-				gb.gpu.scanline++;
-				scanlineComplete = true;
-
-				if (gb.gpu.scanline == 143)
-				{
-					gb.gpu.mode = 1;
-				}
-				else
-				{
-					gb.gpu.mode = 2;
-				}
-			}
-			break;
-		case 1://V-Blank period
-			if (gb.gpu.modeclock >= 456)
-			{
-				gb.gpu.modeclock = 0;
-				gb.gpu.scanline++;
-				scanlineComplete = true;
-
-				if (gb.gpu.scanline > 153)
-				{
-					gb.gpu.mode = 2;
-					gb.gpu.scanline = 0;
-				}
-			}
-			break;
-		}
-		//update lcdc status register mode bits
-		gb.gpu.lcdc_status = (gb.gpu.lcdc_status & 0xF8) | gb.gpu.mode;
-		if (gb.gpu.scanlinecompare == gb.gpu.scanline)
-			gb.gpu.lcdc_status |= 4;//calculate coincidence flag
-	}
-
-	return scanlineComplete;
+	return GB_gputick(opcode);
 }

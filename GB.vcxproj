@@ -118,12 +118,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="display.cpp" />
     <ClCompile Include="gb.cpp" />
     <ClCompile Include="glwt.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="memory.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="display.h" />
     <ClInclude Include="extendedopcodes.h" />
     <ClInclude Include="gb.h" />
     <ClInclude Include="glwt.h" />
