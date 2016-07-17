@@ -63,11 +63,6 @@ u8* GB_gpuscreen()
 		}
 	}
 
-	/*for (i32 i = 0; i < 256; ++i)
-	{
-		GB_gpudrawtile(i, i % 20, i / 20);
-	}*/
-
 	return &screenData[0][0][0];
 }
 
@@ -103,6 +98,7 @@ bool GB_gputick(u8 opcode)
 
 				if (gb.gpu.scanline == 143)
 				{
+					gb.interruptFlag.vBlank = true;
 					gb.gpu.mode = 1;
 				}
 				else

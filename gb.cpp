@@ -247,7 +247,23 @@ void extops()
 }
 
 bool g_disassemble = false;
-u16 g_breakpoint = 0xFFFF;
+u16 g_breakpoint = 0xFFFF;//0x29C;
+//0x29C is hit, 
+//2. 0x31A is where code is written from - this is currently not hit :(
+//3. jumped from first vblank interrupt
+
+void GB_handleinterrupts()
+{
+	if (gb.interruptFlag.vBlank && gb.interruptReg.vBlank)
+	{
+		gb.interruptFlag.vBlank = false;
+		gb.interruptsEnabled = false;
+		u16 loc = 0x40;
+		g_disassemble = true;
+		call(loc);
+	}
+	//else if remaining interrupts!!! (v. important)
+}
 
 bool GB_tick()
 {
@@ -289,5 +305,10 @@ bool GB_tick()
 	}
 #undef INST
 
-	return GB_gputick(opcode);
+	bool result = GB_gputick(opcode);
+
+	if (gb.interruptsEnabled)
+		GB_handleinterrupts();
+
+	return result;
 }

@@ -20,15 +20,19 @@ u8 readMemory(u16 loc)
 			return gb.gpu.scanline;
 		case 0xFF45://LYC
 			return gb.gpu.scanlinecompare;
-		case 0xFFFF:
-			return gb.interruptReg;
+		case 0xFF0F://Interrupt Flag
+			return gb.interruptFlag.value;
 		default:
 			return 0;
 		}
 	}
-	else
+	else if (loc < 0xFFFF)
 	{
 		return gb.memory[loc];
+	}
+	else//0xFFFF Interrupt Enable
+	{
+		return gb.interruptReg.value;
 	}
 }
 
@@ -39,7 +43,7 @@ u16 readMemory16(u16 loc)
 
 void writeMemory(u16 loc, u8 val)
 {
-	/*if (loc == 0xFFE1)
+	/*if (loc > 0xFFB6)
 	{
 		logf("%04X = %02X\t\taf = %04X bc = %04X de = %04X hl = %04X sp = %04X pc = %04X z = %d n = %d h = %d c = %d\n", loc, val, gb.af, gb.bc, gb.de, gb.hl, gb.sp, gb.pc, gb.flags.z, gb.flags.n, gb.flags.h, gb.flags.c);
 	}*/
@@ -59,16 +63,20 @@ void writeMemory(u16 loc, u8 val)
 		case 0xFF45://LYC
 			gb.gpu.scanlinecompare = val;
 			break;
-		case 0xFFFF:
-			gb.interruptReg = val;
+		case 0xFF0F://Interrupt Flag
+			gb.interruptFlag.value = val;
 			break;
 		default:
 			break;
 		}
 	}
-	else
+	else if (loc < 0xFFFF)
 	{
 		gb.memory[loc] = val;
+	}
+	else//0xFFFF Interrupt Enable
+	{
+		gb.interruptReg.value = val;
 	}
 }
 

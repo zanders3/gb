@@ -67,24 +67,25 @@ struct GB
 	u8 memory[0x10000];
 
 	//hardware i/o state
-	u8 interruptReg;
+	struct Interrupt {
+		union {
+			u8 value;
+			struct {
+				bool vBlank : 1;
+				bool lcdStat : 1;
+				bool timer : 1;
+				bool serial : 1;
+				bool joypad : 1;
+			};
+		};
+	};
+
+	Interrupt interruptReg, interruptFlag;
 	bool interruptsEnabled;
 
 	//gpu state
 	struct GPU {
-		union {
-			u8 lcdc_status;
-			struct {
-				bool bgDisplayEnable : 1;//0 = off 1 = on
-				bool spriteEnable : 1;//0 = off 1 = on
-				bool spriteSize : 1;//0=8x8 1=8x16
-				bool bgTileMapDisplaySelect : 1;//0 = 0x9800 1 = 0x9C00
-				bool tileMapDataSelect : 1;//0 = 0x8800 1 = 0x8000
-				bool windowEnable : 1;//0 = off 1 = on
-				bool windowTileMapDisplaySelect : 1;//0 = 0x9800 1 = 0x9C00
-				bool displayEnable : 1;//0 = off 1 = on
-			};
-		};
+		u8 lcdc_status;
 		u8 mode;
 		u8 scanline;
 		u8 scanlinecompare;
