@@ -72,7 +72,19 @@ struct GB
 
 	//gpu state
 	struct GPU {
-		u8 lcdc_status;
+		union {
+			u8 lcdc_status;
+			struct {
+				bool bgDisplayEnable : 1;//0 = off 1 = on
+				bool spriteEnable : 1;//0 = off 1 = on
+				bool spriteSize : 1;//0=8x8 1=8x16
+				bool bgTileMapDisplaySelect : 1;//0 = 0x9800 1 = 0x9C00
+				bool tileMapDataSelect : 1;//0 = 0x8800 1 = 0x8000
+				bool windowEnable : 1;//0 = off 1 = on
+				bool windowTileMapDisplaySelect : 1;//0 = 0x9800 1 = 0x9C00
+				bool displayEnable : 1;//0 = off 1 = on
+			};
+		};
 		u8 mode;
 		u8 scanline;
 		u8 scanlinecompare;

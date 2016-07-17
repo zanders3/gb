@@ -2,6 +2,7 @@
 #include "gb.h"
 #include "display.h"
 #include <memory>
+#include <assert.h>
 
 //http://bgb.bircd.org/pandocs.htm
 
@@ -27,26 +28,45 @@ void GB_gpuinit()
 	memset(screenData, 0, sizeof(screenData));
 }
 
-u8* GB_gpuscreen()
+void GB_gpudrawtile(i32 idx, i32 ix, i32 iy)
 {
+	assert(ix >= 0 && ix < 20);
+	assert(iy >= 0 && iy < 18);
+	assert(idx >= 0 && idx < 255);
 	const Tile* tiles = reinterpret_cast<Tile*>(&gb.memory[0x8000]);
-	
-	for (i32 idx = 0; idx < 9; idx++)
+	for (i32 row = 0; row < 8; ++row)
 	{
-		for (i32 row = 0; row < 8; row++)
+		const i32 py = (iy * 8) + row;
+		const Tile::TileRow& line = tiles[idx].rows[row];
+		for (i32 x = 7, bit = 1; x >= 0; x--, bit += bit)
 		{
-			const Tile::TileRow& line = tiles[idx].rows[row];
-			for (i32 x = 0, bit = 1; x < 8; x++, bit += bit)
-			{
-				u8 col = (line.lsbcolor & bit) ? 127 : 0;
-				col += (line.msbcolor & bit) ? 127 : 0;
-				i32 px = x + (idx * 10);
-				screenData[px][row][0] = col;
-				screenData[px][row][1] = col;
-				screenData[px][row][2] = col;
-			}
+			u8 col = (line.lsbcolor & bit) ? 127 : 0;
+			col += (line.msbcolor & bit) ? 127 : 0;
+			const i32 px = (ix * 8) + x;
+			screenData[py][px][0] = col;
+			screenData[py][px][1] = col;
+			screenData[py][px][2] = col;
 		}
 	}
+}
+
+u8* GB_gpuscreen()
+{
+	const u8* backgroundMap = &gb.memory[0x9800];
+
+	for (i32 y = 0; y < 18; ++y)
+	{
+		for (i32 x = 0; x < 20; ++x)
+		{
+			const u8 tileIdx = backgroundMap[(y * 32) + x];
+			GB_gpudrawtile(tileIdx, x, y);
+		}
+	}
+
+	/*for (i32 i = 0; i < 256; ++i)
+	{
+		GB_gpudrawtile(i, i % 20, i / 20);
+	}*/
 
 	return &screenData[0][0][0];
 }
