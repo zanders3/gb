@@ -40,8 +40,8 @@ void GB_gpudrawtile(i32 idx, i32 ix, i32 iy)
 		const Tile::TileRow& line = tiles[idx].rows[row];
 		for (i32 x = 7, bit = 1; x >= 0; x--, bit += bit)
 		{
-			u8 col = (line.lsbcolor & bit) ? 127 : 0;
-			col += (line.msbcolor & bit) ? 127 : 0;
+			u8 col = 4 - (((line.lsbcolor & bit) ? 1 : 0) | ((line.msbcolor & bit) ? 2 : 0));
+			col *= 63;
 			const i32 px = (ix * 8) + x;
 			screenData[py][px][0] = col;
 			screenData[py][px][1] = col;
@@ -112,12 +112,12 @@ bool GB_gputick(u8 opcode)
 			{
 				gb.gpu.modeclock = 0;
 				gb.gpu.scanline++;
-				scanlineComplete = true;
 
 				if (gb.gpu.scanline > 153)
 				{
 					gb.gpu.mode = 2;
 					gb.gpu.scanline = 0;
+					scanlineComplete = true;
 				}
 			}
 			break;
