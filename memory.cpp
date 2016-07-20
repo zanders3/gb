@@ -15,7 +15,7 @@ u8 readMemory(u16 loc)
 		case 0xFF00://Joypad R/W
 			return 0x1F;//TODO: proper keyboard input
 		case 0xFF40://LCDC
-			return gb.gpu.lcdc_status;
+			return gb.gpu.lcdcStatus;
 		case 0xFF44://LY
 			return gb.gpu.scanline;
 		case 0xFF45://LYC
@@ -58,13 +58,16 @@ void writeMemory(u16 loc, u8 val)
 		switch (loc)
 		{
 		case 0xFF40://LCDC
-			gb.gpu.lcdc_status = val;
+			gb.gpu.lcdcStatus = val;
 			break;
 		case 0xFF45://LYC
 			gb.gpu.scanlinecompare = val;
 			break;
 		case 0xFF0F://Interrupt Flag
 			gb.interruptFlag.value = val;
+			break;
+		case 0xFF46://DMA register
+			gb.gpu.dmaRegister = val;
 			break;
 		default:
 			break;

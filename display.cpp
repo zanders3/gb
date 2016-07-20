@@ -23,6 +23,11 @@ struct Tile
 	} rows[8];
 };
 
+struct Sprite
+{
+	u8 YPos, XPos, TileNum, Attributes;
+};
+
 void GB_gpuinit()
 {
 	memset(screenData, 0, sizeof(screenData));
@@ -30,19 +35,19 @@ void GB_gpuinit()
 
 void GB_gpudrawtile(i32 idx, i32 ix, i32 iy)
 {
-	assert(ix >= 0 && ix < 20);
-	assert(iy >= 0 && iy < 18);
+	assert(ix >= 0 && ix < 20*8);
+	assert(iy >= 0 && iy < 18*8);
 	assert(idx >= 0 && idx < 255);
 	const Tile* tiles = reinterpret_cast<Tile*>(&gb.memory[0x8000]);
 	for (i32 row = 0; row < 8; ++row)
 	{
-		const i32 py = (iy * 8) + row;
+		const i32 py = iy + row;
 		const Tile::TileRow& line = tiles[idx].rows[row];
 		for (i32 x = 7, bit = 1; x >= 0; x--, bit += bit)
 		{
 			u8 col = 4 - (((line.lsbcolor & bit) ? 1 : 0) | ((line.msbcolor & bit) ? 2 : 0));
 			col *= 63;
-			const i32 px = (ix * 8) + x;
+			const i32 px = ix + x;
 			screenData[py][px][0] = col;
 			screenData[py][px][1] = col;
 			screenData[py][px][2] = col;
@@ -59,7 +64,17 @@ u8* GB_gpuscreen()
 		for (i32 x = 0; x < 20; ++x)
 		{
 			const u8 tileIdx = backgroundMap[(y * 32) + x];
-			GB_gpudrawtile(tileIdx, x, y);
+			GB_gpudrawtile(tileIdx, x * 8, y * 8);
+		}
+	}
+
+	const Sprite* sprites = reinterpret_cast<Sprite*>(&gb.memory[0xFE00]);
+	for (i32 i = 0; i < 40; ++i)
+	{
+		const Sprite& sprite = sprites[i];
+		if (sprite.XPos > 0 && sprite.XPos < 168 && sprite.YPos > 0 && sprite.YPos < 160)
+		{
+			GB_gpudrawtile(sprite.TileNum, sprite.XPos - 8, sprite.YPos - 16);
 		}
 	}
 
@@ -113,19 +128,28 @@ bool GB_gputick(u8 opcode)
 				gb.gpu.modeclock = 0;
 				gb.gpu.scanline++;
 
+				scanlineComplete = true;
+
 				if (gb.gpu.scanline > 153)
 				{
 					gb.gpu.mode = 2;
 					gb.gpu.scanline = 0;
-					scanlineComplete = true;
 				}
 			}
 			break;
 		}
 		//update lcdc status register mode bits
-		gb.gpu.lcdc_status = (gb.gpu.lcdc_status & 0xF8) | gb.gpu.mode;
+		gb.gpu.lcdcStatus = (gb.gpu.lcdcStatus & 0xF8) | gb.gpu.mode;
 		if (gb.gpu.scanlinecompare == gb.gpu.scanline)
-			gb.gpu.lcdc_status |= 4;//calculate coincidence flag
+			gb.gpu.lcdcStatus |= 4;//calculate coincidence flag
+	}
+
+	//run dma transfer
+	if (gb.gpu.dmaRegister != 0 && gb.gpu.mode == 3)//LCD controller copying to OAM
+	{
+		u16 sourceLocation = (gb.gpu.dmaRegister << 8);
+		memcpy(&gb.memory[0xFE00], &gb.memory[sourceLocation], 0x9F);
+		gb.gpu.dmaRegister = 0;
 	}
 
 	return scanlineComplete;

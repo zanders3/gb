@@ -59,7 +59,7 @@ void GB_load(u8* rom, u32 romLength)
 	gb.interruptsEnabled = false;
 
 	memset(gb.gpu.framebuffer, 0, sizeof(gb.gpu.framebuffer));
-	gb.gpu.lcdc_status = 0;
+	gb.gpu.lcdcStatus = 0;
 	gb.gpu.mode = 2;
 	gb.gpu.modeclock = 0;
 	gb.gpu.scanline = 0;

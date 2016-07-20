@@ -85,14 +85,15 @@ struct GB
 
 	//gpu state
 	struct GPU {
-		u8 lcdc_status;
+		u8 lcdcStatus;
 		u8 mode;
 		u8 scanline;
 		u8 scanlinecompare;
+		u8 dmaRegister;
 		u16 modeclock;
 		u32 framebuffer[160 * 144];
 	} gpu;
-
+	
 } extern gb;
 
 void GB_load(u8* rom, u32 romLength);
