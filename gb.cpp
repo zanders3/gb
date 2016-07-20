@@ -235,6 +235,21 @@ void res8(u32 index, u8& reg)
 	reg = reg & ~(1 << index);
 }
 
+void sla8(u8& reg)
+{
+	gb.flags.flags = 0;
+	gb.flags.c = (reg & 8) > 0;
+	reg = reg << 1;
+	gb.flags.z = reg == 0;
+}
+
+void bit8(u8 bit, u8 val)
+{
+	gb.flags.z = ((1 << bit) & val) > 0;
+	gb.flags.n = false;
+	gb.flags.h = true;
+}
+
 void extops()
 {
 	u8 extopcode = gb.memory[gb.pc-1];
@@ -259,7 +274,6 @@ void GB_handleinterrupts()
 		gb.interruptFlag.vBlank = false;
 		gb.interruptsEnabled = false;
 		u16 loc = 0x40;
-		g_disassemble = true;
 		call(loc);
 	}
 	//else if remaining interrupts!!! (v. important)
