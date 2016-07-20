@@ -104,34 +104,34 @@ void undefined()
 	logf("Unimplemented!\n");
 }
 
-void cpl()
+inline void cpl()
 {
 	gb.a = ~gb.a;
 	gb.flags.n = true;
 	gb.flags.h = true;
 }
 
-void call(u16& nn)
+inline void call(u16& nn)
 {
 	writeMemory16(gb.sp, gb.pc);
 	gb.pc = nn;
 	gb.sp -= 2;
 }
 
-void ret()
+inline void ret()
 {
 	gb.sp += 2;
 	gb.pc = readMemory16(gb.sp);
 }
 
-void rst(u8 n)
+inline void rst(u8 n)
 {
 	writeMemory16(gb.sp, gb.pc);
 	gb.pc = n;
 	gb.sp -= 2;
 }
 
-void add8(u8 reg)
+inline void add8(u8 reg)
 {
 	gb.flags.h = gb.a > 0 && (reg & 0xF) > (0xF - gb.a);
 	gb.flags.c = gb.a > 0 && reg > (0xFF - gb.a);
@@ -140,7 +140,7 @@ void add8(u8 reg)
 	gb.flags.n = false;
 }
 
-void addhl16(u16 reg)
+inline void addhl16(u16 reg)
 {
 	gb.flags.h = gb.hl > 0 && (reg & 0xFFF) > (0xFFF - gb.hl);
 	gb.flags.c = gb.hl > 0 && reg > (0xFFFF - gb.hl);
@@ -148,7 +148,7 @@ void addhl16(u16 reg)
 	gb.flags.n = false;
 }
 
-void inc16(u16& reg)
+inline void inc16(u16& reg)
 {
 	gb.flags.h = reg == ((u16)-1);
 	reg += 1;
@@ -156,7 +156,7 @@ void inc16(u16& reg)
 	gb.flags.n = false;
 }
 
-void inc8(u8& reg)
+inline void inc8(u8& reg)
 {
 	gb.flags.h = reg == ((u8)-1);
 	reg += 1;
@@ -164,7 +164,7 @@ void inc8(u8& reg)
 	gb.flags.n = false;
 }
 
-void dec16(u16& reg)
+inline void dec16(u16& reg)
 {
 	gb.flags.h = reg == 0;
 	reg -= 1;
@@ -172,7 +172,7 @@ void dec16(u16& reg)
 	gb.flags.n = true;
 }
 
-void dec8(u8& reg)
+inline void dec8(u8& reg)
 {
 	gb.flags.h = reg == 0;
 	reg -= 1;
@@ -180,28 +180,28 @@ void dec8(u8& reg)
 	gb.flags.n = true;
 }
 
-void or8(u8 reg)
+inline void or8(u8 reg)
 {
 	gb.a = gb.a | reg;
 	gb.flags.flags = 0;
 	gb.flags.z = gb.a == 0;
 }
 
-void cp8(u8 val)
+inline void cp8(u8 val)
 {
 	gb.flags.z = gb.a == val;
 	gb.flags.n = true;
 	gb.flags.c = gb.a < val;
 }
 
-void xor8(u8 reg)
+inline void xor8(u8 reg)
 {
 	gb.a = gb.a ^ reg;
 	gb.flags.flags = 0;
 	gb.flags.z = gb.a == 0;
 }
 
-void and8(u8 reg)
+inline void and8(u8 reg)
 {
 	gb.a = gb.a & reg;
 	gb.flags.z = gb.a == 0;
@@ -210,7 +210,7 @@ void and8(u8 reg)
 	gb.flags.c = false;
 }
 
-void swap8(u8& reg)
+inline void swap8(u8& reg)
 {
 	u8 tmp = reg;
 	reg = (tmp >> 4) | ((tmp & 0xF) << 4);
@@ -218,24 +218,24 @@ void swap8(u8& reg)
 	gb.flags.z = reg == 0;
 }
 
-void pop16(u16& reg)
+inline void pop16(u16& reg)
 {
 	gb.sp += 2;
 	reg = readMemory16(gb.sp);
 }
 
-void push16(u16& reg)
+inline void push16(u16& reg)
 {
 	writeMemory16(gb.sp, reg);
 	gb.sp -= 2;
 }
 
-void res8(u32 index, u8& reg)
+inline void res8(u32 index, u8& reg)
 {
 	reg = reg & ~(1 << index);
 }
 
-void sla8(u8& reg)
+inline void sla8(u8& reg)
 {
 	gb.flags.flags = 0;
 	gb.flags.c = (reg & 8) > 0;
@@ -243,14 +243,14 @@ void sla8(u8& reg)
 	gb.flags.z = reg == 0;
 }
 
-void bit8(u8 bit, u8 val)
+inline void bit8(u8 bit, u8 val)
 {
 	gb.flags.z = ((1 << bit) & val) > 0;
 	gb.flags.n = false;
 	gb.flags.h = true;
 }
 
-void extops()
+inline void extops()
 {
 	u8 extopcode = gb.memory[gb.pc-1];
 #define EXT_INST(code, disassembly, function) case code: function break;
