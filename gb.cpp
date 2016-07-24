@@ -150,6 +150,15 @@ inline void addhl16(u16 reg)
 	gb.flags.n = false;
 }
 
+inline void sub8(u8 reg)
+{
+	gb.a -= (u8)reg;
+	gb.flags.h = gb.a > 0 && (reg & 0xF) > (0xF - gb.a);
+	gb.flags.c = gb.a > 0 && reg > (0xFF - gb.a);
+	gb.flags.z = gb.a == 0;
+	gb.flags.n = true;
+}
+
 inline void inc16(u16& reg)
 {
 	gb.flags.h = reg == ((u16)-1);
@@ -244,6 +253,13 @@ inline void res8hl(const u8 bit)
 	writeMemory(gb.hl, val);
 }
 
+inline void bit8(u8 bit, u8 val)
+{
+	gb.flags.z = ((1 << bit) & val) == 0;
+	gb.flags.n = false;
+	gb.flags.h = true;
+}
+
 inline void sla8(u8& reg)
 {
 	gb.flags.flags = 0;
@@ -252,11 +268,21 @@ inline void sla8(u8& reg)
 	gb.flags.z = reg == 0;
 }
 
-inline void bit8(u8 bit, u8 val)
+inline void srl8(u8& reg)
 {
-	gb.flags.z = ((1 << bit) & val) == 0;
 	gb.flags.n = false;
-	gb.flags.h = true;
+	gb.flags.h = false;
+	gb.flags.c = reg & 0x1;
+	reg = reg >> 1;
+}
+
+inline void rlca()//rotate a left
+{
+	gb.flags.c = gb.a & 0x80;
+	gb.a = (gb.a << 1) | (gb.a & 0x8);
+	gb.flags.z = gb.a == 0;
+	gb.flags.n = false;
+	gb.flags.h = false;
 }
 
 inline void extops()
