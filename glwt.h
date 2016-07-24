@@ -23,6 +23,15 @@ typedef int bool;
 extern "C" {
 #endif
 
+	enum Key {
+		Key_Backspace = 0x08,
+		Key_Enter = 0x0D,
+		Key_LeftArrow = 0x25,
+		Key_UpArrow = 0x26,
+		Key_RightArrow = 0x27,
+		Key_DownArrow = 0x28,
+	};
+
 	extern bool glwt_keydown[255];
 
 	int glwt_init(const char* title, int width, int height, bool fullscreen);

@@ -5,8 +5,6 @@
 #include <stdio.h>
 #include "display.h"
 
-//#include <conio.h>
-
 u32 screenTexture;
 
 float tris[] = {

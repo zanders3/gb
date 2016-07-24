@@ -121,6 +121,7 @@
     <ClCompile Include="display.cpp" />
     <ClCompile Include="gb.cpp" />
     <ClCompile Include="glwt.cpp" />
+    <ClCompile Include="input.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="memory.cpp" />
   </ItemGroup>
@@ -129,6 +130,7 @@
     <ClInclude Include="extendedopcodes.h" />
     <ClInclude Include="gb.h" />
     <ClInclude Include="glwt.h" />
+    <ClInclude Include="input.h" />
     <ClInclude Include="memory.h" />
     <ClInclude Include="opcodes.h" />
   </ItemGroup>

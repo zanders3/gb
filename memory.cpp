@@ -13,7 +13,7 @@ u8 readMemory(u16 loc)
 		switch (loc)
 		{
 		case 0xFF00://Joypad R/W
-			return 0x1F;//TODO: proper keyboard input
+			return gb.joypadInput;
 		case 0xFF40://LCDC
 			return gb.gpu.lcdcStatus;
 		case 0xFF44://LY
@@ -43,7 +43,7 @@ u16 readMemory16(u16 loc)
 
 void writeMemory(u16 loc, u8 val)
 {
-	/*if (loc > 0xFFB6)
+	/*if (loc > 0xc000 && loc <= 0xc0F0)
 	{
 		logf("%04X = %02X\t\taf = %04X bc = %04X de = %04X hl = %04X sp = %04X pc = %04X z = %d n = %d h = %d c = %d\n", loc, val, gb.af, gb.bc, gb.de, gb.hl, gb.sp, gb.pc, gb.flags.z, gb.flags.n, gb.flags.h, gb.flags.c);
 	}*/
@@ -57,6 +57,9 @@ void writeMemory(u16 loc, u8 val)
 	{
 		switch (loc)
 		{
+		case 0xFF00://Joypad R/W
+			gb.joypadInput = val;
+			break;
 		case 0xFF40://LCDC
 			gb.gpu.lcdcStatus = val;
 			break;

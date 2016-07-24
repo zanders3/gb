@@ -7,6 +7,7 @@
 #include <memory>
 #include "memory.h"
 #include "display.h"
+#include "input.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -64,6 +65,7 @@ void GB_load(u8* rom, u32 romLength)
 	gb.gpu.modeclock = 0;
 	gb.gpu.scanline = 0;
 	gb.gpu.scanlinecompare = 0;
+	gb.joypadInput = 0xFF;
 
 	writeMemory(0xFF05, 0x00); // TIMA
 	writeMemory(0xFF06, 0x00); // TMA
@@ -230,9 +232,16 @@ inline void push16(u16& reg)
 	gb.sp -= 2;
 }
 
-inline void res8(u32 index, u8& reg)
+inline void res8(const u8 bit, u8& reg)
 {
-	reg = reg & ~(1 << index);
+	reg = reg & ~(1 << bit);
+}
+
+inline void res8hl(const u8 bit)
+{
+	u8 val = readMemory(gb.hl);
+	res8(bit, val);
+	writeMemory(gb.hl, val);
 }
 
 inline void sla8(u8& reg)
@@ -245,7 +254,7 @@ inline void sla8(u8& reg)
 
 inline void bit8(u8 bit, u8 val)
 {
-	gb.flags.z = ((1 << bit) & val) > 0;
+	gb.flags.z = ((1 << bit) & val) == 0;
 	gb.flags.n = false;
 	gb.flags.h = true;
 }
@@ -323,6 +332,8 @@ bool GB_tick()
 
 	if (gb.interruptsEnabled)
 		GB_handleinterrupts();
+
+	GB_tickinput();
 
 	return result;
 }

@@ -93,6 +93,9 @@ struct GB
 		u16 modeclock;
 		u32 framebuffer[160 * 144];
 	} gpu;
+
+	//joypad input
+	u8 joypadInput;
 	
 } extern gb;
 
