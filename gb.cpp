@@ -106,6 +106,11 @@ void undefined()
 	logf("Unimplemented!\n");
 }
 
+inline void xx()
+{
+	undefined();
+}
+
 inline void cpl()
 {
 	gb.a = ~gb.a;
@@ -120,6 +125,16 @@ inline void call(u16& nn)
 	gb.sp -= 2;
 }
 
+inline void halt()
+{
+	undefined();
+}
+
+inline void stop()
+{
+	undefined();
+}
+
 inline void ret()
 {
 	gb.sp += 2;
@@ -131,6 +146,16 @@ inline void rst(u8 n)
 	writeMemory16(gb.sp, gb.pc);
 	gb.pc = n;
 	gb.sp -= 2;
+}
+
+inline void scf()
+{
+	undefined();
+}
+
+inline void ccf()
+{
+	undefined();
 }
 
 inline void add8(u8 reg)
@@ -167,6 +192,11 @@ inline void sub8(u8 reg)
 	gb.flags.c = gb.a > 0 && reg > (0xFF - gb.a);
 	gb.flags.z = gb.a == 0;
 	gb.flags.n = true;
+}
+
+inline void sbc8(u8 reg)
+{
+	undefined();
 }
 
 inline void inc16(u16& reg)
@@ -290,6 +320,11 @@ inline void sla8(u8& reg)
 	gb.flags.z = reg == 0;
 }
 
+inline void sra8(u8& reg)
+{
+	undefined();
+}
+
 inline void srl8(u8& reg)
 {
 	gb.flags.n = false;
@@ -298,13 +333,56 @@ inline void srl8(u8& reg)
 	reg = reg >> 1;
 }
 
-inline void rlca()//rotate a left
+inline void rr8(u8& reg)//rotate r right
 {
-	gb.flags.c = (gb.a & 0x80) > 0;
-	gb.a = (gb.a << 1) | (gb.a & 0x8);
-	gb.flags.z = gb.a == 0;
+	bool c = reg & 0x1;
+	reg = (reg >> 1) | (gb.flags.c ? 0x80 : 0);
+	gb.flags.c = c;
+	gb.flags.z = reg == 0;
 	gb.flags.n = false;
 	gb.flags.h = false;
+}
+
+inline void rrc8(u8& reg)//rotate right carry
+{
+	undefined();
+}
+
+inline void rl8(u8& reg)//rotate r left
+{
+	undefined();
+}
+
+inline void rlc8(u8& reg)//rotate left carry
+{
+	gb.flags.c = (reg & 0x80) > 0;
+	reg = (reg << 1) | (reg & 0x8);
+	gb.flags.z = reg == 0;
+	gb.flags.n = false;
+	gb.flags.h = false;
+}
+
+inline void daa()
+{
+	u32 a = gb.a;
+	if (!gb.flags.n)
+	{
+		if (gb.flags.h || (gb.a & 0xF) > 0x9)
+			a = gb.a + 0x06;
+		if (gb.flags.c || gb.a > 0x9F)
+			a = gb.a + 0x60;
+	}
+	else
+	{
+		if (gb.flags.h)
+			a = (gb.a - 6) & 0xFF;
+		if (gb.flags.c)
+			a -= 0x60;
+	}
+	
+	gb.flags.c = (a & 0x100) == 0x100;
+	gb.a = a & 0xFF;
+	gb.flags.z = gb.a == 0;
 }
 
 inline void extops()
