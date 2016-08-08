@@ -100,7 +100,8 @@ int main(int argc, char *argv[])
 #endif
 {
 	FILE* file = nullptr;
-	const char* filePath = "test_gb/01-special.gb";//"Tetris.gb";
+	const char* filePath = "test_gb/01-special.gb";
+	//const char* filePath = "Tetris.gb";
 #ifdef _WIN32
 	fopen_s(&file, filePath, "rb");
 #else

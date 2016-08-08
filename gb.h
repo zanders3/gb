@@ -24,7 +24,16 @@ struct GB
 	struct {
 		union {
 			struct {
-				u8 f, a;
+				struct Flags {
+					union {
+						struct {
+							u8 top : 4;
+							bool z : 1, n : 1, h : 1, c : 1;
+						};
+						u8 flags;
+					};
+				} f;
+				u8 a;
 			};
 			u16 af;
 		};
@@ -55,15 +64,7 @@ struct GB
 	};
 	u16 nn;
 	u16 sp, pc;
-	struct Flags {
-		union {
-			struct {
-				bool z : 1, n : 1, h : 1, c : 1;
-			};
-			u8 flags;
-		};
-	} flags;
-
+	
 	u8 memory[0x10000];
 
 	//hardware i/o state

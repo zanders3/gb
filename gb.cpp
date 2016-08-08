@@ -102,7 +102,7 @@ void GB_load(u8* rom, u32 romLength)
 
 void undefined() 
 {
-	logf("\t\taf = %04X bc = %04X de = %04X hl = %04X sp = %04X pc = %04X z = %d n = %d h = %d c = %d\n", gb.af, gb.bc, gb.de, gb.hl, gb.sp, gb.pc, gb.flags.z, gb.flags.n, gb.flags.h, gb.flags.c);
+	logf("\t\taf = %04X bc = %04X de = %04X hl = %04X sp = %04X pc = %04X z = %d n = %d h = %d c = %d\n", gb.af, gb.bc, gb.de, gb.hl, gb.sp, gb.pc, gb.f.z, gb.f.n, gb.f.h, gb.f.c);
 	logf("Unimplemented!\n");
 }
 
@@ -114,8 +114,8 @@ inline void xx()
 inline void cpl()
 {
 	gb.a = ~gb.a;
-	gb.flags.n = true;
-	gb.flags.h = true;
+	gb.f.n = true;
+	gb.f.h = true;
 }
 
 inline void call(u16& nn)
@@ -160,38 +160,38 @@ inline void ccf()
 
 inline void add8(u8 reg)
 {
-	gb.flags.h = gb.a > 0 && (reg & 0xF) > (0xF - gb.a);
-	gb.flags.c = gb.a > 0 && reg > (0xFF - gb.a);
+	gb.f.h = gb.a > 0 && (reg & 0xF) > (0xF - gb.a);
+	gb.f.c = gb.a > 0 && reg > (0xFF - gb.a);
 	gb.a += (u8)reg;
-	gb.flags.z = gb.a == 0;
-	gb.flags.n = false;
+	gb.f.z = gb.a == 0;
+	gb.f.n = false;
 }
 
 inline void addhl16(u16 reg)
 {
-	gb.flags.h = gb.hl > 0 && (reg & 0xFFF) > (0xFFF - gb.hl);
-	gb.flags.c = gb.hl > 0 && reg > (0xFFFF - gb.hl);
+	gb.f.h = gb.hl > 0 && (reg & 0xFFF) > (0xFFF - gb.hl);
+	gb.f.c = gb.hl > 0 && reg > (0xFFFF - gb.hl);
 	gb.hl += reg;
-	gb.flags.n = false;
+	gb.f.n = false;
 }
 
 inline void adc8(u8 reg)
 {
-	gb.flags.h = gb.a > 0 && ((reg + gb.flags.c) & 0xF) > (0xF - gb.a);
-	gb.flags.c = gb.a > 0 && (reg + gb.flags.c) > (0xFF - gb.a);
+	gb.f.h = gb.a > 0 && ((reg + gb.f.c) & 0xF) > (0xF - gb.a);
+	gb.f.c = gb.a > 0 && (reg + gb.f.c) > (0xFF - gb.a);
 	gb.a += (u8)reg;
-	gb.a += (u8)gb.flags.c;
-	gb.flags.z = gb.a == 0;
-	gb.flags.n = false;
+	gb.a += (u8)gb.f.c;
+	gb.f.z = gb.a == 0;
+	gb.f.n = false;
 }
 
 inline void sub8(u8 reg)
 {
 	gb.a -= (u8)reg;
-	gb.flags.h = gb.a > 0 && (reg & 0xF) > (0xF - gb.a);
-	gb.flags.c = gb.a > 0 && reg > (0xFF - gb.a);
-	gb.flags.z = gb.a == 0;
-	gb.flags.n = true;
+	gb.f.h = gb.a > 0 && (reg & 0xF) > (0xF - gb.a);
+	gb.f.c = gb.a > 0 && reg > (0xFF - gb.a);
+	gb.f.z = gb.a == 0;
+	gb.f.n = true;
 }
 
 inline void sbc8(u8 reg)
@@ -201,72 +201,72 @@ inline void sbc8(u8 reg)
 
 inline void inc16(u16& reg)
 {
-	gb.flags.h = reg == ((u16)-1);
+	gb.f.h = reg == ((u16)-1);
 	reg += 1;
-	gb.flags.z = reg == 0;
-	gb.flags.n = false;
+	gb.f.z = reg == 0;
+	gb.f.n = false;
 }
 
 inline void inc8(u8& reg)
 {
-	gb.flags.h = reg == ((u8)-1);
+	gb.f.h = reg == ((u8)-1);
 	reg += 1;
-	gb.flags.z = reg == 0;
-	gb.flags.n = false;
+	gb.f.z = reg == 0;
+	gb.f.n = false;
 }
 
 inline void dec16(u16& reg)
 {
-	gb.flags.h = reg == 0;
+	gb.f.h = reg == 0;
 	reg -= 1;
-	gb.flags.z = reg == 0;
-	gb.flags.n = true;
+	gb.f.z = reg == 0;
+	gb.f.n = true;
 }
 
 inline void dec8(u8& reg)
 {
-	gb.flags.h = reg == 0;
+	gb.f.h = reg == 0;
 	reg -= 1;
-	gb.flags.z = reg == 0;
-	gb.flags.n = true;
+	gb.f.z = reg == 0;
+	gb.f.n = true;
 }
 
 inline void or8(u8 reg)
 {
 	gb.a = gb.a | reg;
-	gb.flags.flags = 0;
-	gb.flags.z = gb.a == 0;
+	gb.f.flags = 0;
+	gb.f.z = gb.a == 0;
 }
 
 inline void cp8(u8 val)
 {
-	gb.flags.z = gb.a == val;
-	gb.flags.n = true;
-	gb.flags.c = gb.a < val;
+	gb.f.z = gb.a == val;
+	gb.f.n = true;
+	gb.f.c = gb.a < val;
 }
 
 inline void xor8(u8 reg)
 {
 	gb.a = gb.a ^ reg;
-	gb.flags.flags = 0;
-	gb.flags.z = gb.a == 0;
+	gb.f.flags = 0;
+	gb.f.z = gb.a == 0;
 }
 
 inline void and8(u8 reg)
 {
 	gb.a = gb.a & reg;
-	gb.flags.z = gb.a == 0;
-	gb.flags.n = false;
-	gb.flags.h = true;
-	gb.flags.c = false;
+	gb.f.z = gb.a == 0;
+	gb.f.n = false;
+	gb.f.h = true;
+	gb.f.c = false;
 }
 
 inline void swap8(u8& reg)
 {
 	u8 tmp = reg;
 	reg = (tmp >> 4) | ((tmp & 0xF) << 4);
-	gb.flags.flags = 0;
-	gb.flags.z = reg == 0;
+	gb.f.flags = 0;
+	gb.f.z = reg == 0;
 }
 
 inline void pop16(u16& reg)
@@ -307,17 +307,17 @@ inline void set8hl(const u8 bit)
 
 inline void bit8(const u8 bit, u8 val)
 {
-	gb.flags.z = ((1 << bit) & val) == 0;
-	gb.flags.n = false;
-	gb.flags.h = true;
+	gb.f.z = ((1 << bit) & val) == 0;
+	gb.f.n = false;
+	gb.f.h = true;
 }
 
 inline void sla8(u8& reg)
 {
-	gb.flags.flags = 0;
-	gb.flags.c = (reg & 8) > 0;
+	gb.f.flags = 0;
+	gb.f.c = (reg & 8) > 0;
 	reg = reg << 1;
-	gb.flags.z = reg == 0;
+	gb.f.z = reg == 0;
 }
 
 inline void sra8(u8& reg)
@@ -327,20 +327,20 @@ inline void sra8(u8& reg)
 
 inline void srl8(u8& reg)
 {
-	gb.flags.n = false;
-	gb.flags.h = false;
-	gb.flags.c = reg & 0x1;
+	gb.f.n = false;
+	gb.f.h = false;
+	gb.f.c = reg & 0x1;
 	reg = reg >> 1;
 }
 
 inline void rr8(u8& reg)//rotate r right
 {
 	bool c = reg & 0x1;
-	reg = (reg >> 1) | (gb.flags.c ? 0x80 : 0);
-	gb.flags.c = c;
-	gb.flags.z = reg == 0;
-	gb.flags.n = false;
-	gb.flags.h = false;
+	reg = (reg >> 1) | (gb.f.c ? 0x80 : 0);
+	gb.f.c = c;
+	gb.f.z = reg == 0;
+	gb.f.n = false;
+	gb.f.h = false;
 }
 
 inline void rrc8(u8& reg)//rotate right carry
@@ -355,34 +355,34 @@ inline void rl8(u8& reg)//rotate r left
 
 inline void rlc8(u8& reg)//rotate left carry
 {
-	gb.flags.c = (reg & 0x80) > 0;
+	gb.f.c = (reg & 0x80) > 0;
 	reg = (reg << 1) | (reg & 0x8);
-	gb.flags.z = reg == 0;
-	gb.flags.n = false;
-	gb.flags.h = false;
+	gb.f.z = reg == 0;
+	gb.f.n = false;
+	gb.f.h = false;
 }
 
 inline void daa()
 {
 	u32 a = gb.a;
-	if (!gb.flags.n)
+	if (!gb.f.n)
 	{
-		if (gb.flags.h || (gb.a & 0xF) > 0x9)
+		if (gb.f.h || (gb.a & 0xF) > 0x9)
 			a = gb.a + 0x06;
-		if (gb.flags.c || gb.a > 0x9F)
+		if (gb.f.c || gb.a > 0x9F)
 			a = gb.a + 0x60;
 	}
 	else
 	{
-		if (gb.flags.h)
+		if (gb.f.h)
 			a = (gb.a - 6) & 0xFF;
-		if (gb.flags.c)
+		if (gb.f.c)
 			a -= 0x60;
 	}
 	
-	gb.flags.c = (a & 0x100) == 0x100;
+	gb.f.c = (a & 0x100) == 0x100;
 	gb.a = a & 0xFF;
-	gb.flags.z = gb.a == 0;
+	gb.f.z = gb.a == 0;
 }
 
 inline void extops()
@@ -397,10 +397,7 @@ inline void extops()
 }
 
 bool g_disassemble = false;
-u16 g_breakpoint = 0xFFFF;//0x29C;
-//0x29C is hit, 
-//2. 0x31A is where code is written from - this is currently not hit :(
-//3. jumped from first vblank interrupt
+u16 g_breakpoint = 0xffff;
 
 void GB_handleinterrupts()
 {
@@ -413,6 +410,9 @@ void GB_handleinterrupts()
 	}
 	//else if remaining interrupts!!! (v. important)
 }
+
+#include <set>
+std::set<u16> seenOps;
 
 bool GB_tick()
 {
@@ -429,8 +429,9 @@ bool GB_tick()
 	else if (opcodeLength == 3)
 		gb.nn = gb.memory[gb.pc + 1] | (gb.memory[gb.pc + 2] << 8);
 
-	if (g_disassemble)
+	if (g_disassemble /*&& seenOps.find(gb.pc) == seenOps.end()*/)
 	{
+		seenOps.insert(gb.pc);
 		const char* disassembly = instructionDisassembly[opcode];
 		if (opcode == 0xCB)//extended opcodes
 		{
@@ -453,6 +454,7 @@ bool GB_tick()
 #include "opcodes.h"
 	}
 #undef INST
+	gb.f.top = 0;//the top 4 bits of the flags register is always 0
 
 	bool result = GB_gputick(opcode);
 

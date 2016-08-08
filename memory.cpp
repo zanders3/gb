@@ -45,7 +45,7 @@ void writeMemory(u16 loc, u8 val)
 {
 	/*if (loc > 0xc000 && loc <= 0xc0F0)
 	{
-		logf("%04X = %02X\t\taf = %04X bc = %04X de = %04X hl = %04X sp = %04X pc = %04X z = %d n = %d h = %d c = %d\n", loc, val, gb.af, gb.bc, gb.de, gb.hl, gb.sp, gb.pc, gb.flags.z, gb.flags.n, gb.flags.h, gb.flags.c);
+		logf("%04X = %02X\t\taf = %04X bc = %04X de = %04X hl = %04X sp = %04X pc = %04X z = %d n = %d h = %d c = %d\n", loc, val, gb.af, gb.bc, gb.de, gb.hl, gb.sp, gb.pc, gb.f.z, gb.f.n, gb.f.h, gb.f.c);
 	}*/
 
 	if (loc >= 0xE000 && loc <= 0xFDFF)
