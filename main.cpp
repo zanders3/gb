@@ -76,15 +76,26 @@ void glwt_setup()
 	glBindVertexArray(vao);
 }
 
-float acc = 0.0f;
+double gettime()
+{
+    LARGE_INTEGER currentTime;
+    QueryPerformanceCounter(&currentTime);
+    return (double)currentTime.QuadPart / 1000000.0;
+}
 
+//target 1/60 seconds... somehow.
 void glwt_draw(float time)
 {
-	bool scanlineCompleted = false;
-	while (!scanlineCompleted)
-	{
-		scanlineCompleted = GB_tick();
-	}
+    double endTime = gettime() + (1.0 / 2400.0);
+
+    while (gettime() < endTime)
+    {
+        bool scanlineCompleted = false;
+        while (!scanlineCompleted)
+        {
+            scanlineCompleted = GB_tick();
+        }
+    }
 
 	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, static_cast<const GLvoid*>(GB_gpuscreen()));
 
