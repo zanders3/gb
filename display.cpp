@@ -55,7 +55,7 @@ void GB_gpudrawtile(i32 idx, i32 ix, i32 iy)
 	}
 }
 
-u8* GB_gpuscreen()
+const u8* GB_gpuscreen()
 {
 	const u8* backgroundMap = &gb.memory[0x9800];
 
@@ -78,7 +78,7 @@ u8* GB_gpuscreen()
 		}
 	}
 
-	return &screenData[0][0][0];
+    return &screenData[0][0][0];
 }
 
 bool GB_gputick(u8 opcode)

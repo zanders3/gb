@@ -4,6 +4,6 @@
 #define SCREEN_WIDTH 160
 
 void GB_gpuinit();
-u8* GB_gpuscreen();
+const u8* GB_gpuscreen();
 bool GB_gputick(u8 opcode);
 
