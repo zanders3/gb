@@ -9,6 +9,13 @@
 
 bool glwt_keydown[255];
 
+double glwt_getTime()
+{
+    LARGE_INTEGER currentTime;
+    QueryPerformanceCounter(&currentTime);
+    return (double)currentTime.QuadPart / 1000000.0;
+}
+
 #ifdef __APPLE__
 #import <Foundation/Foundation.h>
 #import <Cocoa/Cocoa.h>

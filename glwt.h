@@ -37,6 +37,7 @@ extern "C" {
 	int glwt_init(const char* title, int width, int height, bool fullscreen);
 	void glwt_setup();
 	void glwt_draw(float dt);
+    double glwt_getTime();
 
 #ifdef __cplusplus
 }

@@ -51,6 +51,7 @@ void GB_gpudrawtile(i32 idx, i32 ix, i32 iy)
 			screenData[py][px][0] = col;
 			screenData[py][px][1] = col;
 			screenData[py][px][2] = col;
+            screenData[py][px][3] = 255;
 		}
 	}
 }
