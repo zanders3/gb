@@ -33,6 +33,10 @@ extern "C" {
 	};
 
 	extern bool glwt_keydown[255];
+    extern bool glwt_mouseLeft, glwt_mouseRight;
+    extern int glwt_mouseX, glwt_mouseY;
+    extern char glwt_charValue;
+    extern double glwt_mouseWheel;
 
 	int glwt_init(const char* title, int width, int height, bool fullscreen);
 	void glwt_setup();

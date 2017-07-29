@@ -414,7 +414,7 @@ void GB_handleinterrupts()
 #include <set>
 std::set<u16> seenOps;
 
-bool GB_tick()
+bool GB_tick(i32& ticksElapsed)
 {
 	if (gb.pc == g_breakpoint)
 	{
@@ -456,7 +456,7 @@ bool GB_tick()
 #undef INST
 	gb.f.top = 0;//the top 4 bits of the flags register is always 0
 
-	bool result = GB_gputick(opcode);
+	bool result = GB_gputick(opcode, ticksElapsed);
 
 	if (gb.interruptsEnabled)
 		GB_handleinterrupts();

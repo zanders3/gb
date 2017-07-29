@@ -82,12 +82,13 @@ const u8* GB_gpuscreen()
     return &screenData[0][0][0];
 }
 
-bool GB_gputick(u8 opcode)
+bool GB_gputick(u8 opcode, i32& ticksElapsed)
 {
 	//tick gpu
 	bool scanlineComplete = false;
 	{
 		u8 elapsedTicks = instructionOpCodeTicks[opcode];
+        ticksElapsed = elapsedTicks;
 		gb.gpu.modeclock += elapsedTicks;
 		switch (gb.gpu.mode)
 		{

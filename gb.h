@@ -102,4 +102,4 @@ struct GB
 } extern gb;
 
 void GB_load(u8* rom, u32 romLength);
-bool GB_tick();
+bool GB_tick(i32& ticksElapsed);

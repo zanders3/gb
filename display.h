@@ -5,5 +5,5 @@
 
 void GB_gpuinit();
 const u8* GB_gpuscreen();
-bool GB_gputick(u8 opcode);
+bool GB_gputick(u8 opcode, i32& ticksElapsed);
 

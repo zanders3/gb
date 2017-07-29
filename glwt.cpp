@@ -8,13 +8,11 @@
 #include "glwt.h"
 
 bool glwt_keydown[255];
-
-double glwt_getTime()
-{
-    LARGE_INTEGER currentTime;
-    QueryPerformanceCounter(&currentTime);
-    return (double)currentTime.QuadPart / 1000000.0;
-}
+int glwt_mouseX = -1;
+int glwt_mouseY = -1;
+double glwt_mouseWheel = 0;
+bool glwt_mouseLeft = false, glwt_mouseRight = false;
+char glwt_charValue = '\0';
 
 #ifdef __APPLE__
 #import <Foundation/Foundation.h>
@@ -166,13 +164,13 @@ int glwt_init(const char* title, int width, int height, bool fullscreen)
 #endif //__APPLE__
 
 #ifdef _WIN32
-#include <windows.h>
+#include <windowsx.h>
 
-HCURSOR gPointerCursor;
 HWND gHwnd;
 bool gRunning = true;
 HGLRC openGLContext;
 HDC windowHandleDeviceContext;
+double timerFrequency = 1.0;
 
 #pragma comment (lib, "opengl32.lib")
 
@@ -232,11 +230,58 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	case WM_MOUSEMOVE:
 	{
-		SetCursor(gPointerCursor);
+        glwt_mouseX = GET_X_LPARAM(lParam);
+        glwt_mouseY = GET_Y_LPARAM(lParam);
+		SetCursor(NULL);
 	}
 	break;
 
+    case WM_LBUTTONUP:
+    {
+        glwt_mouseLeft = false;
+    }
+    break;
+
+    case WM_LBUTTONDOWN:
+    {
+        glwt_mouseLeft = true;
+    }
+    break;
+
+    case WM_RBUTTONUP:
+    {
+        glwt_mouseRight = false;
+    }
+    break;
+
+    case WM_RBUTTONDOWN:
+    {
+        glwt_mouseRight = true;
+    }
+    break;
+
+    case WM_MOUSELEAVE:
+    {
+        glwt_mouseLeft = false;
+        glwt_mouseX = -1;
+        glwt_mouseY = -1;
+    }
+    break;
+
+    case WM_MOUSEWHEEL:
+    {
+        glwt_mouseWheel = (SHORT)HIWORD(wParam) / (double)WHEEL_DELTA;
+    }
+    break;
+
+    case WM_CHAR:
+    {
+        glwt_charValue = (char)wParam;
+    }
+    break;
+
 	case WM_CLOSE:
+    case WM_QUIT:
 		wglDeleteContext(openGLContext);
 		gRunning = false;
 		break;
@@ -250,6 +295,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 int glwt_init(const char* title, int width, int height, bool fullscreen)
 {
 	memset(glwt_keydown, 0, sizeof(glwt_keydown));
+
+    __int64 timerFreq;
+    QueryPerformanceFrequency((LARGE_INTEGER*)&timerFreq);
+    timerFrequency = 1.0 / (double)timerFreq;
 
 	WNDCLASS wc = { 0 };
 	wc.lpfnWndProc = WndProc;
@@ -265,19 +314,22 @@ int glwt_init(const char* title, int width, int height, bool fullscreen)
 	LARGE_INTEGER currentTime;
 	MSG msg = { 0 };
 	QueryPerformanceCounter(&currentTime);
-	LONGLONG lastTime = currentTime.QuadPart;
+    double lastTime = glwt_getTime();
 
 	while (gRunning)
 	{
-		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-			DispatchMessage(&msg);
+        while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+        {
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+        }
 
 		if (gRunning)
 		{
 			//Query the elapsed frame time
-			QueryPerformanceCounter(&currentTime);
-			float dt = (currentTime.QuadPart - lastTime) / 1000000.0f;
-			lastTime = currentTime.QuadPart;
+            double newTime = glwt_getTime();
+            float dt = (float)(newTime - lastTime);
+            lastTime = newTime;
 
 			//Begin painting
 			PAINTSTRUCT ps;
@@ -294,6 +346,13 @@ int glwt_init(const char* title, int width, int height, bool fullscreen)
 	}
 
 	return 0;
+}
+
+double glwt_getTime()
+{
+    __int64 currentTime;
+    QueryPerformanceCounter((LARGE_INTEGER*)&currentTime);
+    return (double)currentTime * timerFrequency;
 }
 
 #endif //_WIN32

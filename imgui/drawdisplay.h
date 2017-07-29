@@ -5,4 +5,5 @@
 void* getscreentex();
 
 void display_init(int width, int height);
-void display_draw(const u8* gpuScreen);
+void display_update(const u8* gpuScreen);
+void display_draw();

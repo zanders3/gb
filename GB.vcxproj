@@ -127,6 +127,7 @@
     <ClCompile Include="gb.cpp" />
     <ClCompile Include="glwt.cpp" />
     <ClCompile Include="imgui\imgui.cpp" />
+    <ClCompile Include="imgui\imgui_demo.cpp" />
     <ClCompile Include="imgui\imgui_draw.cpp" />
     <ClCompile Include="imgui\imgui_impl_glwt.cpp" />
     <ClCompile Include="input.cpp" />

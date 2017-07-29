@@ -83,8 +83,12 @@ void display_init(int width, int height)
     glBindVertexArray(vao);
 }
 
-void display_draw(const u8* gpuScreen)
+void display_update(const u8* gpuScreen)
 {
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, g_Width, g_Height, GL_RGBA, GL_UNSIGNED_BYTE, static_cast<const GLvoid*>(gpuScreen));
+}
+
+void display_draw()
+{
     glDrawArrays(GL_TRIANGLES, 0, 6);
 }
