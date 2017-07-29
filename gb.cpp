@@ -396,9 +396,6 @@ inline void extops()
 #undef INST
 }
 
-bool g_disassemble = false;
-u16 g_breakpoint = 0xffff;
-
 void GB_handleinterrupts()
 {
 	if (gb.interruptFlag.vBlank && gb.interruptReg.vBlank)
@@ -411,16 +408,27 @@ void GB_handleinterrupts()
 	//else if remaining interrupts!!! (v. important)
 }
 
-#include <set>
-std::set<u16> seenOps;
+const char* GB_disasm(u16 loc, u8& opcode, u16& nn, u8& opcodeLength)
+{
+    opcode = gb.memory[loc];
+    opcodeLength = instructionOpCodeLength[opcode];
+    nn = 0;
+    if (opcodeLength == 2)
+        nn = gb.memory[loc + 1];
+    else if (opcodeLength == 3)
+        nn = gb.memory[loc + 1] | (gb.memory[loc + 2] << 8);
+
+    if (opcode == 0xCB)//extended opcodes
+    {
+        opcode = gb.memory[loc + 1];
+        return extendedInstructionDisassembly[opcode];
+    }
+    else
+        return instructionDisassembly[opcode];
+}
 
 bool GB_tick(i32& ticksElapsed)
 {
-	if (gb.pc == g_breakpoint)
-	{
-		g_disassemble = true;
-	}
-
 	//decode instruction
 	const u8 opcode = gb.memory[gb.pc];
 	u32 opcodeLength = instructionOpCodeLength[opcode];
@@ -428,23 +436,6 @@ bool GB_tick(i32& ticksElapsed)
 		gb.nn = gb.memory[gb.pc + 1];
 	else if (opcodeLength == 3)
 		gb.nn = gb.memory[gb.pc + 1] | (gb.memory[gb.pc + 2] << 8);
-
-	if (g_disassemble /*&& seenOps.find(gb.pc) == seenOps.end()*/)
-	{
-		seenOps.insert(gb.pc);
-		const char* disassembly = instructionDisassembly[opcode];
-		if (opcode == 0xCB)//extended opcodes
-		{
-			u8 extOpcode = gb.memory[gb.pc + 1];
-			disassembly = extendedInstructionDisassembly[extOpcode];
-		}
-		logf("%04X ", gb.pc);
-		if (opcodeLength > 1)
-			logf(disassembly, gb.nn);
-		else
-			logf(disassembly);
-		logf("\n");
-	}
 
 	//run instruction
 	gb.pc += opcodeLength;

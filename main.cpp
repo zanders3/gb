@@ -5,11 +5,14 @@
 #include <stdio.h>
 #include "display.h"
 
-#include "drawdisplay.h"
 #include "imgui.h"
 #include "imgui_impl_glwt.h"
 
+#include "memory.h"
+#include <vector>
+
 const int ScreenMultiplier = 6;
+GLuint screenTexture = 0;
 
 #ifdef _WIN32
 int CALLBACK WinMain(_In_  HINSTANCE hInstance, _In_  HINSTANCE hPrevInstance, _In_  LPSTR lpCmdLine, _In_  int nCmdShow)
@@ -94,12 +97,20 @@ void imgui_stylesetup()
 
 void glwt_setup()
 {
-    display_init(SCREEN_WIDTH, SCREEN_HEIGHT);
+    glEnable(GL_TEXTURE_2D);
+    glGenTextures(1, &screenTexture);
+    glBindTexture(GL_TEXTURE_2D, screenTexture);
+    glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, SCREEN_WIDTH, SCREEN_HEIGHT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
     ImGui_ImplGlfwGL3_Init();
     imgui_stylesetup();
 }
 
-#include "memory.h"
+u16 g_breakpoint;
 
 void imgui_draw()
 {
@@ -107,10 +118,11 @@ void imgui_draw()
     ImGui::SetNextWindowSize(ImVec2(ImGui::GetIO().DisplaySize.x - 8, ImGui::GetIO().DisplaySize.y - 23));
     ImGui::Begin("MainWindow", NULL, ImVec2(0, 0), 0.0f, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoBringToFrontOnFocus);
     {
-        ImGui::Image(getscreentex(), ImVec2(ImGui::GetIO().DisplaySize.x - 8, ImGui::GetIO().DisplaySize.y - 23));
+        ImGui::Image((ImTextureID)screenTexture, ImVec2(ImGui::GetIO().DisplaySize.x - 8, ImGui::GetIO().DisplaySize.y - 23));
     }
     ImGui::End();
 
+    ImGui::SetNextWindowSizeConstraints(ImVec2(100.f, 100.f), ImVec2(800.f, 800.f));
     ImGui::Begin("RAM");
     {
         ImGui::BeginChild("##scrolling", ImVec2(0.f, -ImGui::GetItemsLineHeightWithSpacing()));
@@ -149,20 +161,74 @@ void imgui_draw()
     }
     ImGui::End();
 
-    ImGui::Begin("Code");
+    ImGui::SetNextWindowSizeConstraints(ImVec2(100.f, 100.f), ImVec2(800.f, 800.f));
+    ImGui::Begin("Disassembly");
     {
+        bool scrollToDisasm = false;
+        {
+            if (ImGui::SmallButton(gb.pc == g_breakpoint ? "Play" : "Pause"))
+            {
+                g_breakpoint = gb.pc == g_breakpoint ? 0xFFFF : gb.pc;
+                scrollToDisasm = g_breakpoint != 0xFFFF;
+            }
+            ImGui::SameLine();
+            if (ImGui::SmallButton("Step Into"))
+            {
+            }
+            ImGui::SameLine();
+            ImGui::SmallButton("Step Over"); ImGui::SameLine();
+            ImGui::SmallButton("Step Out");
+        }
 
+        ImGui::BeginChild("##scrolling", ImVec2(0.f, -ImGui::GetItemsLineHeightWithSpacing()));
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+
+        int totalLineCount = 0xFFFF / 2;
+        ImGuiListClipper clipper(totalLineCount, ImGui::GetTextLineHeight());
+
+        if (scrollToDisasm)
+            ImGui::SetScrollY((g_breakpoint - 30) * ImGui::GetTextLineHeight() * 0.5f);
+
+        u16 memStart = clipper.DisplayStart * 2;
+        u16 memEnd = clipper.DisplayEnd * 2;
+        for (u16 loc = memStart; loc < memEnd;)
+        {
+            u8 opcode, length;
+            u16 nn;
+            const char* disasm = GB_disasm(loc, opcode, nn, length);
+
+            ImVec4 textCol = loc == gb.pc ? ImVec4(0.8f, 0.7f, 0.2f, 1.f) : loc == g_breakpoint ? ImVec4(1.f, 0.2f, 0.1f, 1.f) : ImVec4(0.26f, 0.59f, 0.98f, 0.31f);
+            ImGui::PushStyleColor(ImGuiCol_Header, textCol);
+            ImGui::Selectable("##selectable", loc == gb.pc || loc == g_breakpoint, ImGuiSelectableFlags_SpanAllColumns);
+            ImGui::PopStyleColor();
+            ImGui::SameLine();
+            ImGui::Text("%04d:%02X ", loc, opcode);
+            ImGui::SameLine();
+            ImGui::Text(disasm, nn);
+            loc += length;
+        }
+
+        clipper.End();
+
+        ImGui::PopStyleVar(2);
+        ImGui::EndChild();
+
+        ImGui::Text("Call Stack");
     }
     ImGui::End();
 }
 
 const u32 cpuHertz = 4190000;
-float simulationSpeed = 1.0;
 i32 ticksToSimulate = 0;
 
 void glwt_draw(float time)
 {
-    ticksToSimulate += (i32)(time * simulationSpeed * cpuHertz);
+    if (gb.pc == g_breakpoint)
+        ticksToSimulate = 0;
+    else
+        ticksToSimulate += (i32)(time * cpuHertz);
+
     if (ticksToSimulate > 0)
     {
         bool scanlineCompleted = false;
@@ -171,16 +237,18 @@ void glwt_draw(float time)
             i32 ticksElapsed = 0;
             scanlineCompleted = GB_tick(ticksElapsed);
             ticksToSimulate -= ticksElapsed;
+            if (gb.pc == g_breakpoint)
+                break;
         }
-        display_update(GB_gpuscreen());
+        if (scanlineCompleted)
+            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, static_cast<const GLvoid*>(GB_gpuscreen()));
     }
 
     ImGui_ImplGlfwGL3_NewFrame(SCREEN_WIDTH * ScreenMultiplier, SCREEN_HEIGHT * ScreenMultiplier);
-
     imgui_draw();
     ImGui::ShowTestWindow();
     
-    glClearColor(0.2f, 0.2f, 0.3f, 1.0f);
+    glClearColor(0.2f, 0.2f, 0.21f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
     ImGui::Render();
 }

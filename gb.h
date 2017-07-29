@@ -101,5 +101,6 @@ struct GB
 	
 } extern gb;
 
+const char* GB_disasm(u16 loc, u8& opcode, u16& nn, u8& opcodeLength);
 void GB_load(u8* rom, u32 romLength);
 bool GB_tick(i32& ticksElapsed);

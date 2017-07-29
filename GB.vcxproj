@@ -123,7 +123,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="display.cpp" />
-    <ClCompile Include="drawdisplay.cpp" />
     <ClCompile Include="gb.cpp" />
     <ClCompile Include="glwt.cpp" />
     <ClCompile Include="imgui\imgui.cpp" />
@@ -139,7 +138,6 @@
     <ClInclude Include="extendedopcodes.h" />
     <ClInclude Include="gb.h" />
     <ClInclude Include="glwt.h" />
-    <ClInclude Include="imgui\drawdisplay.h" />
     <ClInclude Include="imgui\imconfig.h" />
     <ClInclude Include="imgui\imgui.h" />
     <ClInclude Include="imgui\imgui_impl_glwt.h" />
