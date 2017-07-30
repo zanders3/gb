@@ -292,6 +292,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	return 0;
 }
 
+#include "resource.h"
+
 int glwt_init(const char* title, int width, int height, bool fullscreen)
 {
 	memset(glwt_keydown, 0, sizeof(glwt_keydown));
@@ -306,6 +308,7 @@ int glwt_init(const char* title, int width, int height, bool fullscreen)
 	wc.hbrBackground = (HBRUSH)(COLOR_BACKGROUND);
 	wc.lpszClassName = "GLWT";
 	wc.style = CS_OWNDC;
+    wc.hIcon = LoadIcon(wc.hInstance, MAKEINTRESOURCE(IDI_ICON1));
 	if (!RegisterClass(&wc))
 		return false;
 

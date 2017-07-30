@@ -148,6 +148,13 @@
     <ClInclude Include="input.h" />
     <ClInclude Include="memory.h" />
     <ClInclude Include="opcodes.h" />
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="GB.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="GB.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

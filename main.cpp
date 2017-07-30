@@ -110,7 +110,52 @@ void glwt_setup()
     imgui_stylesetup();
 }
 
-u16 g_breakpoint;
+struct Breakpoints
+{
+    u32 numLocations;
+    u16 locations[32];
+
+    Breakpoints() : numLocations(0) 
+    {}
+
+    inline bool hasHit(u16 loc) const
+    {
+        for (u32 i = 0; i < numLocations; i++)
+            if (locations[i] == loc)
+                return true;
+        return false;
+    }
+
+    void add(u16 loc)
+    {
+        if (hasHit(loc) || numLocations >= size(locations))
+            return;
+        locations[numLocations] = loc;
+        numLocations++;
+    }
+
+    void remove(u16 loc)
+    {
+        for (u32 i = 0; i < numLocations; i++)
+            if (locations[i] == loc)
+            {
+                locations[i] = locations[numLocations - 1];
+                numLocations--;
+                return;
+            }
+    }
+} g_breakpoints;
+
+enum class RunState
+{
+    Running,
+    Paused,
+    StepInto,
+    StepOver,
+    StepOut
+};
+RunState g_runState = RunState::Running;
+u16 g_stepOverLoc = 0xFFFF;
 
 void imgui_draw()
 {
@@ -164,20 +209,46 @@ void imgui_draw()
     ImGui::SetNextWindowSizeConstraints(ImVec2(100.f, 100.f), ImVec2(800.f, 800.f));
     ImGui::Begin("Disassembly");
     {
+        static bool scrollToDisasmNext = false;
         bool scrollToDisasm = false;
         {
-            if (ImGui::SmallButton(gb.pc == g_breakpoint ? "Play" : "Pause"))
+            if (scrollToDisasmNext)
             {
-                g_breakpoint = gb.pc == g_breakpoint ? 0xFFFF : gb.pc;
-                scrollToDisasm = g_breakpoint != 0xFFFF;
+                scrollToDisasmNext = false;
+                scrollToDisasm = true;
+            }
+            if (ImGui::Button(g_runState != RunState::Running ? "Play " : "Pause"))
+            {
+                g_runState = g_runState == RunState::Running ? RunState::Paused : RunState::Running;
+                scrollToDisasmNext = g_runState == RunState::Paused;
             }
             ImGui::SameLine();
-            if (ImGui::SmallButton("Step Into"))
+            if (ImGui::Button("Step Into"))
             {
+                g_runState = RunState::StepInto;
+                scrollToDisasmNext = true;
             }
             ImGui::SameLine();
-            ImGui::SmallButton("Step Over"); ImGui::SameLine();
-            ImGui::SmallButton("Step Out");
+            if (ImGui::Button("Step Over"))
+            {
+                u8 opcode, length;
+                u16 nn;
+                const char* disasm = GB_disasm(gb.pc, opcode, nn, length);
+                if (strncmp("CALL", disasm, 4) == 0)
+                {
+                    g_stepOverLoc = gb.pc + length;
+                    g_runState = RunState::StepOver;
+                }
+                else
+                    g_runState = RunState::StepInto;
+                scrollToDisasmNext = true;
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Step Out"))
+            {
+                g_runState = RunState::StepOut;
+                scrollToDisasmNext = true;
+            }
         }
 
         ImGui::BeginChild("##scrolling", ImVec2(0.f, -ImGui::GetItemsLineHeightWithSpacing()));
@@ -188,7 +259,12 @@ void imgui_draw()
         ImGuiListClipper clipper(totalLineCount, ImGui::GetTextLineHeight());
 
         if (scrollToDisasm)
-            ImGui::SetScrollY((g_breakpoint - 30) * ImGui::GetTextLineHeight() * 0.5f);
+        {
+            float targetScrollY = (gb.pc - 30) * ImGui::GetTextLineHeight() * 0.5f;
+            float scrollY = ImGui::GetScrollY();
+            if (abs(targetScrollY - scrollY) > 30.f)
+                ImGui::SetScrollY(targetScrollY);
+        }
 
         u16 memStart = clipper.DisplayStart * 2;
         u16 memEnd = clipper.DisplayEnd * 2;
@@ -198,11 +274,29 @@ void imgui_draw()
             u16 nn;
             const char* disasm = GB_disasm(loc, opcode, nn, length);
 
-            ImVec4 textCol = loc == gb.pc ? ImVec4(0.8f, 0.7f, 0.2f, 1.f) : loc == g_breakpoint ? ImVec4(1.f, 0.2f, 0.1f, 1.f) : ImVec4(0.26f, 0.59f, 0.98f, 0.31f);
+            bool hitPC = loc == gb.pc;
+            bool hitBP = g_breakpoints.hasHit(loc);
+
+            ImVec4 textCol = hitPC ? ImVec4(0.8f, 0.7f, 0.2f, 1.f) : hitBP ? ImVec4(1.f, 0.2f, 0.1f, 1.f) : ImVec4(0.26f, 0.59f, 0.98f, 0.31f);
             ImGui::PushStyleColor(ImGuiCol_Header, textCol);
-            ImGui::Selectable("##selectable", loc == gb.pc || loc == g_breakpoint, ImGuiSelectableFlags_SpanAllColumns);
+            ImGui::PushID(loc);
+            if (ImGui::Selectable("##selectable", hitPC || hitBP, ImGuiSelectableFlags_SpanAllColumns))
+            {
+                if (hitBP)
+                    g_breakpoints.remove(loc);
+                else
+                    g_breakpoints.add(loc);
+            }
+            ImGui::PopID();
             ImGui::PopStyleColor();
-            ImGui::SameLine();
+            if (hitBP)
+            {
+                ImGui::SameLine();
+                ImGui::Bullet();
+                ImGui::SameLine();
+            }
+            else
+                ImGui::SameLine(13.f);
             ImGui::Text("%04d:%02X ", loc, opcode);
             ImGui::SameLine();
             ImGui::Text(disasm, nn);
@@ -224,9 +318,9 @@ i32 ticksToSimulate = 0;
 
 void glwt_draw(float time)
 {
-    if (gb.pc == g_breakpoint)
+    if (g_runState == RunState::Paused)
         ticksToSimulate = 0;
-    else
+    else if (time < 1.f)
         ticksToSimulate += (i32)(time * cpuHertz);
 
     if (ticksToSimulate > 0)
@@ -237,8 +331,24 @@ void glwt_draw(float time)
             i32 ticksElapsed = 0;
             scanlineCompleted = GB_tick(ticksElapsed);
             ticksToSimulate -= ticksElapsed;
-            if (gb.pc == g_breakpoint)
+            if (g_breakpoints.hasHit(gb.pc))
+            {
+                g_runState = RunState::Paused;
                 break;
+            }
+            else if (g_runState != RunState::Running)
+            {
+                if (g_runState == RunState::StepInto)
+                {
+                    g_runState = RunState::Paused;
+                    break;
+                }
+                else if ((g_runState == RunState::StepOver && gb.pc == g_stepOverLoc))
+                {
+                    g_runState = RunState::Paused;
+                    break;
+                }
+            }
         }
         if (scanlineCompleted)
             glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, static_cast<const GLvoid*>(GB_gpuscreen()));

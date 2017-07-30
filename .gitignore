@@ -16,3 +16,7 @@ no$gmb/NO$GMB.INP
 *.db
 *.opendb
 *.user
+imgui.ini
+no$gmb/NO$GMB.INI
+*.TMP
+*.APS
