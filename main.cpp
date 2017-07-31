@@ -11,8 +11,10 @@
 #include "memory.h"
 #include <vector>
 
+#pragma warning (disable: 4996)
+
 const int ScreenMultiplier = 6;
-GLuint screenTexture = 0;
+GLuint screenTexture = 0, tileTexture = 0, screenBgTexture = 0;
 
 #ifdef _WIN32
 int CALLBACK WinMain(_In_  HINSTANCE hInstance, _In_  HINSTANCE hPrevInstance, _In_  LPSTR lpCmdLine, _In_  int nCmdShow)
@@ -95,16 +97,31 @@ void imgui_stylesetup()
     style.Colors[ImGuiCol_ModalWindowDarkening] = ImVec4(0.20f, 0.20f, 0.20f, 0.35f);
 }
 
-void glwt_setup()
+void set_texture(GLuint tex, int width, int height, const u8* pixels)
 {
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, static_cast<const GLvoid*>(pixels));
+}
+
+GLuint make_texture(int width, int height)
+{
+    GLuint tex;
     glEnable(GL_TEXTURE_2D);
-    glGenTextures(1, &screenTexture);
-    glBindTexture(GL_TEXTURE_2D, screenTexture);
-    glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, SCREEN_WIDTH, SCREEN_HEIGHT);
+    glGenTextures(1, &tex);
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, width, height);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    return tex;
+}
+
+void glwt_setup()
+{
+    screenTexture = make_texture(SCREEN_WIDTH, SCREEN_HEIGHT);
+    screenBgTexture = make_texture(SCREEN_WIDTH, SCREEN_HEIGHT);
+    tileTexture = make_texture(TILES_WIDTH, TILES_HEIGHT);
 
     ImGui_ImplGlfwGL3_Init();
     imgui_stylesetup();
@@ -152,24 +169,43 @@ enum class RunState
     Paused,
     StepInto,
     StepOver,
-    StepOut
+    MemBreakpoint
 };
 RunState g_runState = RunState::Running;
 u16 g_stepOverLoc = 0xFFFF;
 
-void imgui_draw()
+void imgui_drawgrid(ImVec2 imgPos, int xw, int xh, float w, float h)
 {
-    ImGui::SetNextWindowPos(ImVec2(-8, 31));
-    ImGui::SetNextWindowSize(ImVec2(ImGui::GetIO().DisplaySize.x - 8, ImGui::GetIO().DisplaySize.y - 23));
-    ImGui::Begin("MainWindow", NULL, ImVec2(0, 0), 0.0f, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoBringToFrontOnFocus);
-    {
-        ImGui::Image((ImTextureID)screenTexture, ImVec2(ImGui::GetIO().DisplaySize.x - 8, ImGui::GetIO().DisplaySize.y - 23));
-    }
-    ImGui::End();
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    for (int x = 0; x <= xw; x++)
+        draw_list->AddLine(ImVec2(imgPos.x + x * 16.f, imgPos.y), ImVec2(imgPos.x + x * 16.f, imgPos.y + h), IM_COL32(200, 123, 123, 255));
+    for (int y = 0; y <= xh; y++)
+        draw_list->AddLine(ImVec2(imgPos.x, imgPos.y + y * 16.f), ImVec2(imgPos.x + w, imgPos.y + y * 16.f), IM_COL32(200, 123, 123, 255));
+}
 
+void imgui_drawram()
+{
     ImGui::SetNextWindowSizeConstraints(ImVec2(100.f, 100.f), ImVec2(800.f, 800.f));
     ImGui::Begin("RAM");
     {
+        bool useMemBreakpoint = g_runState == RunState::MemBreakpoint;
+        if (ImGui::Checkbox("Memory Breakpoint", &useMemBreakpoint) && useMemBreakpoint)
+            g_runState = RunState::MemBreakpoint;
+        ImGui::SameLine();
+        int memBrkpt = (i32)g_memBreakpoint;
+
+        static char memBreakpoint[64] = { '\0' };
+
+        if (ImGui::InputText("", memBreakpoint, 16, ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_CharsUppercase | ImGuiInputTextFlags_EnterReturnsTrue))
+        {
+            sscanf(memBreakpoint, "%04X", (unsigned int*)&g_memBreakpoint);
+            sprintf(memBreakpoint, "%04X", g_memBreakpoint);
+        }
+        if (ImGui::IsItemClicked() || memBreakpoint[0] == '\0')
+        {
+            sprintf(memBreakpoint, "%02X", g_memBreakpoint);
+        }
+
         ImGui::BeginChild("##scrolling", ImVec2(0.f, -ImGui::GetItemsLineHeightWithSpacing()));
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
@@ -186,10 +222,14 @@ void imgui_draw()
             for (u16 loc = memStart; loc < memEnd; loc += locsPerLine)
             {
                 ImGui::Text("%04X:", loc);
-                for (u16 i = 0; i < locsPerLine/2; i++)
+                for (u16 i = 0; i < locsPerLine / 2; i++)
                 {
                     ImGui::SameLine();
-                    ImGui::Text("%04X ", readMemory16(loc + i*2));
+                    ImGui::Text("%04X ", readMemory16(loc + i * 2));
+                    if (ImGui::IsItemHovered() && ImGui::IsItemClicked())
+                    {
+                        g_memBreakpoint = g_memBreakpoint == loc ? 0xFFFF : loc;
+                    }
                 }
 
                 for (u8 i = 0; i < locsPerLine; i++)
@@ -205,12 +245,15 @@ void imgui_draw()
         ImGui::EndChild();
     }
     ImGui::End();
+}
 
+void imgui_drawdisasm()
+{
     ImGui::SetNextWindowSizeConstraints(ImVec2(100.f, 100.f), ImVec2(800.f, 800.f));
     ImGui::Begin("Disassembly");
     {
         static bool scrollToDisasmNext = false;
-        bool scrollToDisasm = false;
+        bool scrollToDisasm = g_hitMemBreakpoint && g_runState == RunState::Paused;
         {
             if (scrollToDisasmNext)
             {
@@ -244,14 +287,13 @@ void imgui_draw()
                 scrollToDisasmNext = true;
             }
             ImGui::SameLine();
-            if (ImGui::Button("Step Out"))
+            if (ImGui::Button("Jump to PC"))
             {
-                g_runState = RunState::StepOut;
-                scrollToDisasmNext = true;
+                scrollToDisasm = true;
             }
         }
 
-        ImGui::BeginChild("##scrolling", ImVec2(0.f, -ImGui::GetItemsLineHeightWithSpacing()));
+        ImGui::BeginChild("##scrolling", ImVec2(0.f, -ImGui::GetItemsLineHeightWithSpacing()-100.f));
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 
@@ -297,7 +339,7 @@ void imgui_draw()
             }
             else
                 ImGui::SameLine(13.f);
-            ImGui::Text("%04d:%02X ", loc, opcode);
+            ImGui::Text("%04X:%02X ", loc, opcode);
             ImGui::SameLine();
             ImGui::Text(disasm, nn);
             loc += length;
@@ -308,9 +350,72 @@ void imgui_draw()
         ImGui::PopStyleVar(2);
         ImGui::EndChild();
 
+        ImGui::Columns(2);
+        ImGui::Separator();
+
         ImGui::Text("Call Stack");
+        ImGui::NextColumn();
+
+        ImGui::Text("Registers");
+        ImGui::Text("af = %04X\nbc = %04X\nde = %04X\nhl = %04X\nsp = %04X\npc = %04X", gb.af, gb.bc, gb.de, gb.hl, gb.sp, gb.pc);
+        ImGui::Columns(1);
+        ImGui::Separator();
     }
     ImGui::End();
+}
+
+void imgui_drawgpu()
+{
+    ImGui::SetNextWindowSizeConstraints(ImVec2(100.f, 100.f), ImVec2(800.f, 800.f));
+    ImGui::Begin("GPU");
+    {
+        //Tabs
+        static int selectedTab = 0;
+        {
+            ImGui::Tab(0, "Display", &selectedTab);
+            ImGui::Tab(1, "Background", &selectedTab);
+            ImGui::Tab(2, "Tiles", &selectedTab);
+            ImGui::Tab(3, "Sprites", &selectedTab);
+        }
+
+        ImVec2 imgPos = ImGui::GetCursorScreenPos();
+        if (selectedTab == 0)
+        {
+            ImGui::Image((ImTextureID)screenTexture, ImVec2(SCREEN_WIDTH * 2.f, SCREEN_HEIGHT * 2.f));
+        }
+        else if (selectedTab == 1)
+        {
+            set_texture(screenBgTexture, SCREEN_WIDTH, SCREEN_HEIGHT, GB_bgscreen());
+            ImGui::Image((ImTextureID)screenBgTexture, ImVec2(SCREEN_WIDTH * 2.f, SCREEN_HEIGHT * 2.f));
+            imgui_drawgrid(imgPos, 20, 18, SCREEN_WIDTH * 2.f, SCREEN_HEIGHT * 2.f);
+        }
+        else if (selectedTab == 2)
+        {
+            set_texture(tileTexture, TILES_WIDTH, TILES_HEIGHT, GB_tiledata());
+            ImGui::Image((ImTextureID)tileTexture, ImVec2(TILES_WIDTH * 2.f, TILES_HEIGHT * 2.f));
+            imgui_drawgrid(imgPos, 16, 24, TILES_WIDTH * 2.f, TILES_HEIGHT * 2.f);
+        }
+        else if (selectedTab == 3)
+        {
+            
+        }
+    }
+    ImGui::End();
+}
+
+void imgui_draw()
+{
+    ImGui::SetNextWindowPos(ImVec2(-8, 31));
+    ImGui::SetNextWindowSize(ImVec2(ImGui::GetIO().DisplaySize.x - 8, ImGui::GetIO().DisplaySize.y - 23));
+    ImGui::Begin("MainWindow", NULL, ImVec2(0, 0), 0.0f, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoBringToFrontOnFocus);
+    {
+        ImGui::Image((ImTextureID)screenTexture, ImVec2(ImGui::GetIO().DisplaySize.x - 8, ImGui::GetIO().DisplaySize.y - 23));
+    }
+    ImGui::End();
+
+    imgui_drawram();
+    imgui_drawdisasm();
+    imgui_drawgpu();
 }
 
 const u32 cpuHertz = 4190000;
@@ -323,6 +428,7 @@ void glwt_draw(float time)
     else if (time < 1.f)
         ticksToSimulate += (i32)(time * cpuHertz);
 
+    g_hitMemBreakpoint = false;
     if (ticksToSimulate > 0)
     {
         bool scanlineCompleted = false;
@@ -343,7 +449,12 @@ void glwt_draw(float time)
                     g_runState = RunState::Paused;
                     break;
                 }
-                else if ((g_runState == RunState::StepOver && gb.pc == g_stepOverLoc))
+                else if (g_runState == RunState::StepOver && gb.pc == g_stepOverLoc)
+                {
+                    g_runState = RunState::Paused;
+                    break;
+                }
+                else if (g_runState == RunState::MemBreakpoint && g_hitMemBreakpoint)
                 {
                     g_runState = RunState::Paused;
                     break;
@@ -351,7 +462,7 @@ void glwt_draw(float time)
             }
         }
         if (scanlineCompleted)
-            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, static_cast<const GLvoid*>(GB_gpuscreen()));
+            set_texture(screenTexture, SCREEN_WIDTH, SCREEN_HEIGHT, GB_gpuscreen());
     }
 
     ImGui_ImplGlfwGL3_NewFrame(SCREEN_WIDTH * ScreenMultiplier, SCREEN_HEIGHT * ScreenMultiplier);

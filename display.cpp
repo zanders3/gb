@@ -7,6 +7,8 @@
 //http://bgb.bircd.org/pandocs.htm
 
 u8 screenData[SCREEN_HEIGHT][SCREEN_WIDTH][4];
+u8 bgScreenData[SCREEN_HEIGHT][SCREEN_WIDTH][4];
+u8 tileData[TILES_HEIGHT][TILES_WIDTH][4];
 
 #define INST(disassembly, opCodeLength, function, opCodeTicks) opCodeTicks,
 const u8 instructionOpCodeTicks[256] =
@@ -31,13 +33,15 @@ struct Sprite
 void GB_gpuinit()
 {
 	memset(screenData, 0, sizeof(screenData));
+    memset(tileData, 0, sizeof(tileData));
 }
 
-void GB_gpudrawtile(i32 idx, i32 ix, i32 iy)
+template <typename T> void GB_gpudrawtile(T& screen, i32 idx, i32 ix, i32 iy)
 {
 	assert(ix >= 0 && ix < 20*8);
 	assert(iy >= 0 && iy < 18*8);
-	assert(idx >= 0 && idx < 255);
+	assert(idx >= 0 && idx <= 255);
+    static_assert(sizeof(Tile) == 0x10, "invalid size");
 	const Tile* tiles = reinterpret_cast<Tile*>(&gb.memory[0x8000]);
 	for (i32 row = 0; row < 8; ++row)
 	{
@@ -48,12 +52,35 @@ void GB_gpudrawtile(i32 idx, i32 ix, i32 iy)
 			u8 col = 4 - (((line.lsbcolor & bit) ? 1 : 0) | ((line.msbcolor & bit) ? 2 : 0));
 			col *= 63;
 			const i32 px = ix + x;
-			screenData[py][px][0] = col;
-			screenData[py][px][1] = col;
-			screenData[py][px][2] = col;
-            screenData[py][px][3] = 255;
+            screen[py][px][0] = col;
+            screen[py][px][1] = col;
+            screen[py][px][2] = col;
+            screen[py][px][3] = 255;
 		}
 	}
+}
+
+const u8* GB_tiledata()
+{
+    for (int i = 0; i <= 255; i++)
+        GB_gpudrawtile(tileData, i, (i % 16) * 8, (i / 16) * 8);
+    return &tileData[0][0][0];
+}
+
+const u8* GB_bgscreen()
+{
+    const u8* backgroundMap = &gb.memory[0x9800];
+
+    for (i32 y = 0; y < 18; ++y)
+    {
+        for (i32 x = 0; x < 20; ++x)
+        {
+            const u8 tileIdx = backgroundMap[(y * 32) + x];
+            GB_gpudrawtile(bgScreenData, tileIdx, x * 8, y * 8);
+        }
+    }
+
+    return &bgScreenData[0][0][0];
 }
 
 const u8* GB_gpuscreen()
@@ -65,7 +92,7 @@ const u8* GB_gpuscreen()
 		for (i32 x = 0; x < 20; ++x)
 		{
 			const u8 tileIdx = backgroundMap[(y * 32) + x];
-			GB_gpudrawtile(tileIdx, x * 8, y * 8);
+			GB_gpudrawtile(screenData, tileIdx, x * 8, y * 8);
 		}
 	}
 
@@ -75,7 +102,7 @@ const u8* GB_gpuscreen()
 		const Sprite& sprite = sprites[i];
 		if (sprite.XPos > 0 && sprite.XPos < 168 && sprite.YPos > 0 && sprite.YPos < 160)
 		{
-			GB_gpudrawtile(sprite.TileNum, sprite.XPos - 8, sprite.YPos - 16);
+			GB_gpudrawtile(screenData, sprite.TileNum, sprite.XPos - 8, sprite.YPos - 16);
 		}
 	}
 

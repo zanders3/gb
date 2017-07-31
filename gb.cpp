@@ -8,6 +8,7 @@
 #include "memory.h"
 #include "display.h"
 #include "input.h"
+#include <cassert>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -104,6 +105,7 @@ void undefined()
 {
 	logf("\t\taf = %04X bc = %04X de = %04X hl = %04X sp = %04X pc = %04X z = %d n = %d h = %d c = %d\n", gb.af, gb.bc, gb.de, gb.hl, gb.sp, gb.pc, gb.f.z, gb.f.n, gb.f.h, gb.f.c);
 	logf("Unimplemented!\n");
+    assert(false);
 }
 
 inline void xx()
@@ -335,9 +337,8 @@ inline void srl8(u8& reg)
 
 inline void rr8(u8& reg)//rotate r right
 {
-	bool c = reg & 0x1;
-	reg = (reg >> 1) | (gb.f.c ? 0x80 : 0);
-	gb.f.c = c;
+	gb.f.c = reg & 0x1;
+	reg = reg >> 1;
 	gb.f.z = reg == 0;
 	gb.f.n = false;
 	gb.f.h = false;
@@ -356,7 +357,7 @@ inline void rl8(u8& reg)//rotate r left
 inline void rlc8(u8& reg)//rotate left carry
 {
 	gb.f.c = (reg & 0x80) > 0;
-	reg = (reg << 1) | (reg & 0x8);
+    reg = (reg << 1);
 	gb.f.z = reg == 0;
 	gb.f.n = false;
 	gb.f.h = false;

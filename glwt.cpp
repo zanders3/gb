@@ -218,13 +218,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	case WM_KEYDOWN:
 	{
-		glwt_keydown[(char)wParam] = true;
+		glwt_keydown[(unsigned char)wParam] = true;
 	}
 	break;
 
 	case WM_KEYUP:
 	{
-		glwt_keydown[(char)wParam] = false;
+		glwt_keydown[(unsigned char)wParam] = false;
 	}
 	break;
 

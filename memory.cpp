@@ -1,6 +1,9 @@
 
 #include "gb.h"
 
+u16 g_memBreakpoint = 0xFFFF;
+bool g_hitMemBreakpoint = false;
+
 u8 readMemory(u16 loc)
 {
 	if (loc >= 0xE000 && loc <= 0xFDFF)
@@ -8,7 +11,7 @@ u8 readMemory(u16 loc)
 		//shadow of working RAM (excluding final 512 bytes)
 		return gb.memory[loc - 0x1000];
 	}
-	else if (loc >= 0xF000 && loc < 0xFF80)
+	else if (loc >= 0xFF00 && loc < 0xFF80)
 	{
 		switch (loc)
 		{
@@ -41,19 +44,19 @@ u16 readMemory16(u16 loc)
 	return (readMemory(loc) << 8) | readMemory(loc + 1);
 }
 
+#include <cassert>
+
 void writeMemory(u16 loc, u8 val)
 {
-	/*if (loc > 0xc000 && loc <= 0xc0F0)
-	{
-		logf("%04X = %02X\t\taf = %04X bc = %04X de = %04X hl = %04X sp = %04X pc = %04X z = %d n = %d h = %d c = %d\n", loc, val, gb.af, gb.bc, gb.de, gb.hl, gb.sp, gb.pc, gb.f.z, gb.f.n, gb.f.h, gb.f.c);
-	}*/
+    if (loc == g_memBreakpoint)
+        g_hitMemBreakpoint = true;
 
 	if (loc >= 0xE000 && loc <= 0xFDFF)
 	{
 		//shadow of working RAM (excluding final 512 bytes)
 		gb.memory[loc - 0x1000] = val;
 	}
-	else if (loc >= 0xF000 && loc < 0xFF80)
+	else if (loc >= 0xFF00 && loc < 0xFF80)
 	{
 		switch (loc)
 		{
