@@ -1,4 +1,6 @@
 
+#include <math.h>
+
 #include "glwt.h"
 #include "gb.h"
 #include <assert.h>
@@ -9,11 +11,11 @@
 #include "imgui_impl_glwt.h"
 
 #include "memory.h"
-#include <vector>
+#include <array>
 
 #pragma warning (disable: 4996)
 
-const int ScreenMultiplier = 6;
+const int ScreenMultiplier = 5;
 GLuint screenTexture = 0, tileTexture = 0, screenBgTexture = 0;
 
 #ifdef _WIN32
@@ -34,7 +36,7 @@ int main(int argc, char *argv[])
 	if (file == nullptr)
 		return 1;
 	fseek(file, 0, SEEK_END);
-	size_t len = ftell(file);
+	u32 len = (u32)ftell(file);
 
 	u8* rom = new u8[len];
 	fseek(file, 0, SEEK_SET);
@@ -130,7 +132,7 @@ void glwt_setup()
 struct Breakpoints
 {
     u32 numLocations;
-    u16 locations[32];
+    std::array<u16, 32> locations;
 
     Breakpoints() : numLocations(0) 
     {}
@@ -145,7 +147,7 @@ struct Breakpoints
 
     void add(u16 loc)
     {
-        if (hasHit(loc) || numLocations >= size(locations))
+        if (hasHit(loc) || numLocations >= locations.size())
             return;
         locations[numLocations] = loc;
         numLocations++;
@@ -192,7 +194,6 @@ void imgui_drawram()
         if (ImGui::Checkbox("Memory Breakpoint", &useMemBreakpoint) && useMemBreakpoint)
             g_runState = RunState::MemBreakpoint;
         ImGui::SameLine();
-        int memBrkpt = (i32)g_memBreakpoint;
 
         static char memBreakpoint[64] = { '\0' };
 
@@ -304,7 +305,7 @@ void imgui_drawdisasm()
         {
             float targetScrollY = (gb.pc - 30) * ImGui::GetTextLineHeight() * 0.5f;
             float scrollY = ImGui::GetScrollY();
-            if (abs(targetScrollY - scrollY) > 30.f)
+            if (fabsf(targetScrollY - scrollY) > 30.f)
                 ImGui::SetScrollY(targetScrollY);
         }
 

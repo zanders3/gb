@@ -266,7 +266,7 @@ bool ImGui_ImplGlfwGL3_Init()
 {
     ImGuiIO& io = ImGui::GetIO();
     //https://msdn.microsoft.com/en-us/library/windows/desktop/dd375731(v=vs.85).aspx
-    io.KeyMap[ImGuiKey_Tab] = VK_TAB;                         // Keyboard mapping. ImGui will use those indices to peek into the io.KeyDown[] array.
+    /*io.KeyMap[ImGuiKey_Tab] = VK_TAB;                         // Keyboard mapping. ImGui will use those indices to peek into the io.KeyDown[] array.
     io.KeyMap[ImGuiKey_LeftArrow] = VK_LEFT;
     io.KeyMap[ImGuiKey_RightArrow] = VK_RIGHT;
     io.KeyMap[ImGuiKey_UpArrow] = VK_UP;
@@ -278,7 +278,7 @@ bool ImGui_ImplGlfwGL3_Init()
     io.KeyMap[ImGuiKey_Delete] = VK_DELETE;
     io.KeyMap[ImGuiKey_Backspace] = VK_BACK;
     io.KeyMap[ImGuiKey_Enter] = VK_RETURN;
-    io.KeyMap[ImGuiKey_Escape] = VK_ESCAPE;
+    io.KeyMap[ImGuiKey_Escape] = VK_ESCAPE;*/
     io.KeyMap[ImGuiKey_A] = 0x41;//A
     io.KeyMap[ImGuiKey_C] = 0x43;
     io.KeyMap[ImGuiKey_V] = 0x56;

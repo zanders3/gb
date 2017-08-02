@@ -25,7 +25,7 @@ struct GB
 	struct {
 		union {
 			struct {
-				struct Flags {
+				struct {
 					union {
 						struct {
 							u8 top : 4;

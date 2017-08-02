@@ -22,19 +22,25 @@ char glwt_charValue = '\0';
 //GLView header
 @interface GLView : NSOpenGLView<NSWindowDelegate>
 {
-	uint64_t lastFrame;
-mach_timebase_info_data_t info;
 }
 @end
 
 //GLView implementation
 NSTimer* timer;
+NSWindow* window=NULL;
+double lastFrame = 0;
+mach_timebase_info_data_t timeInfo;
 
 extern "C" {
 	extern void glSwapAPPLE(void);
 }
 
 @implementation GLView
+
+-(BOOL)acceptsFirstResponder
+{
+    return YES;
+}
 
 - (void)renderTimerCallback:(NSTimer*)timer
 {
@@ -49,8 +55,8 @@ extern "C" {
 	//ensure vbsynch is on!
 	[[self openGLContext] setValues:(GLint[]) { 1 } forParameter:NSOpenGLCPSwapInterval];
 
-	lastFrame = mach_absolute_time();
-	mach_timebase_info(&info);
+	mach_timebase_info(&timeInfo);
+	lastFrame = glwt_getTime();
 
 	timer = [NSTimer timerWithTimeInterval : 0.001
 		target : self
@@ -73,21 +79,65 @@ extern "C" {
 
 -(void)drawRect : (NSRect)dirtyRect
 {
-	uint64_t latestTime = mach_absolute_time();
-	uint64_t elapsed = latestTime - lastFrame;
+	double latestTime = glwt_getTime();
+	double elapsed = latestTime - lastFrame;
 	lastFrame = latestTime;
 
-	elapsed *= info.numer;
-	elapsed /= info.denom;
+    NSPoint mouseLoc = [window mouseLocationOutsideOfEventStream];
+	glwt_mouseX = mouseLoc.x;
+	glwt_mouseY = [[window contentView] frame].size.height - mouseLoc.y - 40;
 
-	float elapsedSeconds = (float)elapsed * 0.000000001f;
-
-	glwt_draw(elapsedSeconds);
+	glwt_draw((float)elapsed);
 
 	glSwapAPPLE();
 }
 
+-(void)mouseDown : (NSEvent*)theEvent {
+    glwt_mouseLeft = true;
+}
+
+-(void)mouseUp: (NSEvent*)theEvent {
+    glwt_mouseLeft = false;
+}
+
+-(void)rightMouseDown: (NSEvent*)theEvent {
+    glwt_mouseRight = true;
+}
+
+-(void)rightMouseUp: (NSEvent*)theEvent {
+    glwt_mouseRight = false;
+}
+
+-(void)scrollWheel: (NSEvent*)theEvent {
+    glwt_mouseWheel = [theEvent deltaY];
+}
+
+-(void)keyDown: (NSEvent*)theEvent {
+    NSString* key = [theEvent characters];
+    if ([key length] > 0) {
+        glwt_charValue = [key characterAtIndex:0];
+        glwt_keydown[glwt_charValue] = true;
+    }
+}
+
+-(void)keyUp: (NSEvent*)theEvent {
+    NSString* key = [theEvent charactersIgnoringModifiers];
+    if ([key length] > 0) {
+        char c = [key characterAtIndex:0];
+        glwt_keydown[c] = false;
+    }
+}
+
 @end
+
+double glwt_getTime()
+{
+    uint64_t time = mach_absolute_time();
+	time *= timeInfo.numer;
+	time /= timeInfo.denom;
+
+	return time * 0.000000001;
+}
 
 int glwt_init(const char* title, int width, int height, bool fullscreen)
 {
@@ -99,66 +149,67 @@ int glwt_init(const char* title, int width, int height, bool fullscreen)
 	[NSApp setMainMenu : menubar];
 	id appMenu = [NSMenu new];
 	id quitMenuItem = [[NSMenuItem alloc] initWithTitle:@"Quit"
-		action : @selector(terminate : ) keyEquivalent:@"q"];
-		[appMenu addItem : quitMenuItem];
-		[appMenuItem setSubmenu : appMenu];
+    action : @selector(terminate : ) keyEquivalent:@"q"];
+    [appMenu addItem : quitMenuItem];
+    [appMenuItem setSubmenu : appMenu];
 
-		NSRect screenSize = [[NSScreen mainScreen] frame];
-		NSRect mainDisplayRect = NSMakeRect((screenSize.size.width - width) / 2, (screenSize.size.height - height) / 2, width, height);
-		id window = [[NSWindow alloc]
-			initWithContentRect:mainDisplayRect
-			styleMask : NSTitledWindowMask | NSClosableWindowMask
-			backing : NSBackingStoreBuffered
-			defer : YES];
-		//[window cascadeTopLeftFromPoint:NSMakePoint(20,20)];
-		[window setTitle : [NSString stringWithUTF8String : title]];
-		[window makeKeyAndOrderFront : nil];
-		[window setOpaque : YES];
-		[window setCollectionBehavior : NSWindowCollectionBehaviorFullScreenPrimary];
+    NSRect screenSize = [[NSScreen mainScreen] frame];
+    NSRect mainDisplayRect = NSMakeRect((screenSize.size.width - width) / 2, (screenSize.size.height - height) / 2, width, height);
+    window = [[NSWindow alloc]
+        initWithContentRect:mainDisplayRect
+        styleMask : NSTitledWindowMask | NSClosableWindowMask
+        backing : NSBackingStoreBuffered
+        defer : YES];
+    [window setTitle : [NSString stringWithUTF8String : title]];
+    [window makeKeyAndOrderFront : nil];
+    [window setOpaque : YES];
+    [window setCollectionBehavior : NSWindowCollectionBehaviorFullScreenPrimary];
 
-		if (fullscreen)
-			[window toggleFullScreen : nil];
+    if (fullscreen)
+        [window toggleFullScreen : nil];
 
-		//Request an OpenGL 3.2 context (bleurgh... horrible. wtf apple)
-		CGLPixelFormatAttribute attribs[] =
-		{
-			kCGLPFAOpenGLProfile, (CGLPixelFormatAttribute)kCGLOGLPVersion_3_2_Core,
-			kCGLPFAAccelerated,
-			kCGLPFANoRecovery,
-			kCGLPFAColorSize, (CGLPixelFormatAttribute)24,
-			kCGLPFADepthSize, (CGLPixelFormatAttribute)16,
-			kCGLPFADoubleBuffer,
-			(CGLPixelFormatAttribute)0
-		};
-		CGLPixelFormatObj cglPixelFormat = NULL;
-		GLint numPixelFormats;
-		CGLChoosePixelFormat(attribs, &cglPixelFormat, &numPixelFormats);
+    //Request an OpenGL 3.2 context (bleurgh... horrible. wtf apple)
+    CGLPixelFormatAttribute attribs[] =
+    {
+        kCGLPFAOpenGLProfile, (CGLPixelFormatAttribute)kCGLOGLPVersion_3_2_Core,
+        kCGLPFAAccelerated,
+        kCGLPFANoRecovery,
+        kCGLPFAColorSize, (CGLPixelFormatAttribute)24,
+        kCGLPFADepthSize, (CGLPixelFormatAttribute)16,
+        kCGLPFADoubleBuffer,
+        (CGLPixelFormatAttribute)0
+    };
+    CGLPixelFormatObj cglPixelFormat = NULL;
+    GLint numPixelFormats;
+    CGLChoosePixelFormat(attribs, &cglPixelFormat, &numPixelFormats);
 
-		NSOpenGLPixelFormat* pixelFormat = [[NSOpenGLPixelFormat alloc] initWithCGLPixelFormatObj:cglPixelFormat];
-		NSRect viewRect = NSMakeRect(0.0, 0.0, mainDisplayRect.size.width, mainDisplayRect.size.height);
-		GLView *fullScreenView = [[GLView alloc] initWithFrame:viewRect pixelFormat : pixelFormat];
+    NSOpenGLPixelFormat* pixelFormat = [[NSOpenGLPixelFormat alloc] initWithCGLPixelFormatObj:cglPixelFormat];
+    NSRect viewRect = NSMakeRect(0.0, 0.0, mainDisplayRect.size.width, mainDisplayRect.size.height);
+    GLView *fullScreenView = [[GLView alloc] initWithFrame:viewRect pixelFormat : pixelFormat];
 
-		// Synchronize buffer swaps with vertical refresh rate
-		GLint swapInt = 1;
-		[[fullScreenView openGLContext] setValues:&swapInt forParameter : NSOpenGLCPSwapInterval];
+    // Synchronize buffer swaps with vertical refresh rate
+    GLint swapInt = 1;
+    [[fullScreenView openGLContext] setValues:&swapInt forParameter : NSOpenGLCPSwapInterval];
 
-		//Load Open GL functions
-		if (gl3wInit()) {
-			fprintf(stderr, "failed to initialize OpenGL\n");
-			return -1;
-		}
-		if (!gl3wIsSupported(3, 2)) {
-			fprintf(stderr, "OpenGL 3.2 not supported\n");
-			return -1;
-		}
-		printf("OpenGL %s, GLSL %s\n", glGetString(GL_VERSION), glGetString(GL_SHADING_LANGUAGE_VERSION));
+    //Load Open GL functions
+    if (gl3wInit()) {
+        fprintf(stderr, "failed to initialize OpenGL\n");
+        return -1;
+    }
+    if (!gl3wIsSupported(3, 2)) {
+        fprintf(stderr, "OpenGL 3.2 not supported\n");
+        return -1;
+    }
+    printf("OpenGL %s, GLSL %s\n", glGetString(GL_VERSION), glGetString(GL_SHADING_LANGUAGE_VERSION));
 
-		//Add the OpenGL view to the window
-		[window setContentView : fullScreenView];
+    //Add the OpenGL view to the window
+    [window setContentView : fullScreenView];
 
-		[NSApp run];
+    glwt_setup();
 
-		return 0;
+    [NSApp run];
+
+    return 0;
 }
 
 #endif //__APPLE__

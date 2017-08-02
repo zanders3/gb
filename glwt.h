@@ -23,6 +23,16 @@ typedef int bool;
 extern "C" {
 #endif
 
+#ifdef __APPLE__
+    enum Key {
+        Key_Backspace = 51,
+        Key_Enter = 36,
+        Key_LeftArrow = 123,
+        Key_UpArrow = 126,
+        Key_RightArrow = 124,
+        Key_DownArrow = 125
+    };
+#else
 	enum Key {
 		Key_Backspace = 0x08,
 		Key_Enter = 0x0D,
@@ -31,6 +41,7 @@ extern "C" {
 		Key_RightArrow = 0x27,
 		Key_DownArrow = 0x28,
 	};
+#endif
 
 	extern bool glwt_keydown[255];
     extern bool glwt_mouseLeft, glwt_mouseRight;

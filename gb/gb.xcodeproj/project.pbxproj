@@ -7,12 +7,18 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		FA75B0551D32F28A00F08890 /* gb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FA75B04D1D32F28A00F08890 /* gb.cpp */; };
-		FA75B0561D32F28A00F08890 /* glwt.mm in Sources */ = {isa = PBXBuildFile; fileRef = FA75B04F1D32F28A00F08890 /* glwt.mm */; };
-		FA75B0571D32F28A00F08890 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FA75B0511D32F28A00F08890 /* main.cpp */; };
-		FA75B0581D32F28A00F08890 /* memory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FA75B0521D32F28A00F08890 /* memory.cpp */; };
 		FA75B05A1D32F40200F08890 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FA75B0591D32F40200F08890 /* OpenGL.framework */; };
 		FA75B05C1D32F41200F08890 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FA75B05B1D32F41200F08890 /* Cocoa.framework */; };
+		FABBFC9D1F31B14A003EF337 /* display.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FABBFC841F31B14A003EF337 /* display.cpp */; };
+		FABBFC9E1F31B14A003EF337 /* gb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FABBFC871F31B14A003EF337 /* gb.cpp */; };
+		FABBFCA01F31B14A003EF337 /* imgui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FABBFC8D1F31B14A003EF337 /* imgui.cpp */; };
+		FABBFCA11F31B14A003EF337 /* imgui_demo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FABBFC8F1F31B14A003EF337 /* imgui_demo.cpp */; };
+		FABBFCA21F31B14A003EF337 /* imgui_draw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FABBFC901F31B14A003EF337 /* imgui_draw.cpp */; };
+		FABBFCA31F31B14A003EF337 /* imgui_impl_glwt.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FABBFC911F31B14A003EF337 /* imgui_impl_glwt.cpp */; };
+		FABBFCA41F31B14A003EF337 /* input.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FABBFC971F31B14A003EF337 /* input.cpp */; };
+		FABBFCA51F31B14A003EF337 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FABBFC991F31B14A003EF337 /* main.cpp */; };
+		FABBFCA61F31B14A003EF337 /* memory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FABBFC9A1F31B14A003EF337 /* memory.cpp */; };
+		FABBFCA81F31B87E003EF337 /* glwt.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FABBFCA71F31B87E003EF337 /* glwt.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -29,16 +35,32 @@
 
 /* Begin PBXFileReference section */
 		FA75B0431D32F25600F08890 /* gb */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = gb; sourceTree = BUILT_PRODUCTS_DIR; };
-		FA75B04D1D32F28A00F08890 /* gb.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = gb.cpp; path = ../../gb.cpp; sourceTree = "<group>"; };
-		FA75B04E1D32F28A00F08890 /* gb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = gb.h; path = ../../gb.h; sourceTree = "<group>"; };
-		FA75B04F1D32F28A00F08890 /* glwt.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = glwt.mm; path = ../../glwt.mm; sourceTree = "<group>"; };
-		FA75B0501D32F28A00F08890 /* glwt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = glwt.h; path = ../../glwt.h; sourceTree = "<group>"; };
-		FA75B0511D32F28A00F08890 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = ../../main.cpp; sourceTree = "<group>"; };
-		FA75B0521D32F28A00F08890 /* memory.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = memory.cpp; path = ../../memory.cpp; sourceTree = "<group>"; };
-		FA75B0531D32F28A00F08890 /* memory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = memory.h; path = ../../memory.h; sourceTree = "<group>"; };
-		FA75B0541D32F28A00F08890 /* opcodes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = opcodes.h; path = ../../opcodes.h; sourceTree = "<group>"; };
 		FA75B0591D32F40200F08890 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		FA75B05B1D32F41200F08890 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
+		FABBFC841F31B14A003EF337 /* display.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = display.cpp; path = ../display.cpp; sourceTree = "<group>"; };
+		FABBFC851F31B14A003EF337 /* display.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = display.h; path = ../display.h; sourceTree = "<group>"; };
+		FABBFC861F31B14A003EF337 /* extendedopcodes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = extendedopcodes.h; path = ../extendedopcodes.h; sourceTree = "<group>"; };
+		FABBFC871F31B14A003EF337 /* gb.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = gb.cpp; path = ../gb.cpp; sourceTree = "<group>"; };
+		FABBFC881F31B14A003EF337 /* gb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = gb.h; path = ../gb.h; sourceTree = "<group>"; };
+		FABBFC891F31B14A003EF337 /* glwt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = glwt.h; path = ../glwt.h; sourceTree = "<group>"; };
+		FABBFC8C1F31B14A003EF337 /* imconfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = imconfig.h; sourceTree = "<group>"; };
+		FABBFC8D1F31B14A003EF337 /* imgui.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = imgui.cpp; sourceTree = "<group>"; };
+		FABBFC8E1F31B14A003EF337 /* imgui.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = imgui.h; sourceTree = "<group>"; };
+		FABBFC8F1F31B14A003EF337 /* imgui_demo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = imgui_demo.cpp; sourceTree = "<group>"; };
+		FABBFC901F31B14A003EF337 /* imgui_draw.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = imgui_draw.cpp; sourceTree = "<group>"; };
+		FABBFC911F31B14A003EF337 /* imgui_impl_glwt.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = imgui_impl_glwt.cpp; sourceTree = "<group>"; };
+		FABBFC921F31B14A003EF337 /* imgui_impl_glwt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = imgui_impl_glwt.h; sourceTree = "<group>"; };
+		FABBFC931F31B14A003EF337 /* imgui_internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = imgui_internal.h; sourceTree = "<group>"; };
+		FABBFC941F31B14A003EF337 /* stb_rect_pack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stb_rect_pack.h; sourceTree = "<group>"; };
+		FABBFC951F31B14A003EF337 /* stb_textedit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stb_textedit.h; sourceTree = "<group>"; };
+		FABBFC961F31B14A003EF337 /* stb_truetype.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stb_truetype.h; sourceTree = "<group>"; };
+		FABBFC971F31B14A003EF337 /* input.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = input.cpp; path = ../input.cpp; sourceTree = "<group>"; };
+		FABBFC981F31B14A003EF337 /* input.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = input.h; path = ../input.h; sourceTree = "<group>"; };
+		FABBFC991F31B14A003EF337 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = ../main.cpp; sourceTree = "<group>"; };
+		FABBFC9A1F31B14A003EF337 /* memory.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = memory.cpp; path = ../memory.cpp; sourceTree = "<group>"; };
+		FABBFC9B1F31B14A003EF337 /* memory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = memory.h; path = ../memory.h; sourceTree = "<group>"; };
+		FABBFC9C1F31B14A003EF337 /* opcodes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = opcodes.h; path = ../opcodes.h; sourceTree = "<group>"; };
+		FABBFCA71F31B87E003EF337 /* glwt.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = glwt.cpp; path = ../glwt.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -57,9 +79,22 @@
 		FA75B03A1D32F25500F08890 = {
 			isa = PBXGroup;
 			children = (
+				FABBFC841F31B14A003EF337 /* display.cpp */,
+				FABBFC851F31B14A003EF337 /* display.h */,
+				FABBFC861F31B14A003EF337 /* extendedopcodes.h */,
+				FABBFC871F31B14A003EF337 /* gb.cpp */,
+				FABBFC881F31B14A003EF337 /* gb.h */,
+				FABBFC891F31B14A003EF337 /* glwt.h */,
+				FABBFCA71F31B87E003EF337 /* glwt.cpp */,
+				FABBFC8B1F31B14A003EF337 /* imgui */,
+				FABBFC971F31B14A003EF337 /* input.cpp */,
+				FABBFC981F31B14A003EF337 /* input.h */,
+				FABBFC991F31B14A003EF337 /* main.cpp */,
+				FABBFC9A1F31B14A003EF337 /* memory.cpp */,
+				FABBFC9B1F31B14A003EF337 /* memory.h */,
+				FABBFC9C1F31B14A003EF337 /* opcodes.h */,
 				FA75B05B1D32F41200F08890 /* Cocoa.framework */,
 				FA75B0591D32F40200F08890 /* OpenGL.framework */,
-				FA75B0451D32F25600F08890 /* gb */,
 				FA75B0441D32F25600F08890 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -72,19 +107,23 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		FA75B0451D32F25600F08890 /* gb */ = {
+		FABBFC8B1F31B14A003EF337 /* imgui */ = {
 			isa = PBXGroup;
 			children = (
-				FA75B04D1D32F28A00F08890 /* gb.cpp */,
-				FA75B04E1D32F28A00F08890 /* gb.h */,
-				FA75B04F1D32F28A00F08890 /* glwt.mm */,
-				FA75B0501D32F28A00F08890 /* glwt.h */,
-				FA75B0511D32F28A00F08890 /* main.cpp */,
-				FA75B0521D32F28A00F08890 /* memory.cpp */,
-				FA75B0531D32F28A00F08890 /* memory.h */,
-				FA75B0541D32F28A00F08890 /* opcodes.h */,
+				FABBFC8C1F31B14A003EF337 /* imconfig.h */,
+				FABBFC8D1F31B14A003EF337 /* imgui.cpp */,
+				FABBFC8E1F31B14A003EF337 /* imgui.h */,
+				FABBFC8F1F31B14A003EF337 /* imgui_demo.cpp */,
+				FABBFC901F31B14A003EF337 /* imgui_draw.cpp */,
+				FABBFC911F31B14A003EF337 /* imgui_impl_glwt.cpp */,
+				FABBFC921F31B14A003EF337 /* imgui_impl_glwt.h */,
+				FABBFC931F31B14A003EF337 /* imgui_internal.h */,
+				FABBFC941F31B14A003EF337 /* stb_rect_pack.h */,
+				FABBFC951F31B14A003EF337 /* stb_textedit.h */,
+				FABBFC961F31B14A003EF337 /* stb_truetype.h */,
 			);
-			path = gb;
+			name = imgui;
+			path = ../imgui;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -113,7 +152,7 @@
 		FA75B03B1D32F25500F08890 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0610;
+				LastUpgradeCheck = 0830;
 				ORGANIZATIONNAME = "Alex Parker";
 				TargetAttributes = {
 					FA75B0421D32F25600F08890 = {
@@ -143,10 +182,16 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FA75B0581D32F28A00F08890 /* memory.cpp in Sources */,
-				FA75B0551D32F28A00F08890 /* gb.cpp in Sources */,
-				FA75B0561D32F28A00F08890 /* glwt.mm in Sources */,
-				FA75B0571D32F28A00F08890 /* main.cpp in Sources */,
+				FABBFCA61F31B14A003EF337 /* memory.cpp in Sources */,
+				FABBFCA31F31B14A003EF337 /* imgui_impl_glwt.cpp in Sources */,
+				FABBFCA51F31B14A003EF337 /* main.cpp in Sources */,
+				FABBFCA81F31B87E003EF337 /* glwt.cpp in Sources */,
+				FABBFCA41F31B14A003EF337 /* input.cpp in Sources */,
+				FABBFCA01F31B14A003EF337 /* imgui.cpp in Sources */,
+				FABBFC9E1F31B14A003EF337 /* gb.cpp in Sources */,
+				FABBFCA21F31B14A003EF337 /* imgui_draw.cpp in Sources */,
+				FABBFCA11F31B14A003EF337 /* imgui_demo.cpp in Sources */,
+				FABBFC9D1F31B14A003EF337 /* display.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -166,14 +211,18 @@
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -186,10 +235,12 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = "$(SRCROOT)/../imgui";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
+				USER_HEADER_SEARCH_PATHS = "";
 			};
 			name = Debug;
 		};
@@ -206,8 +257,10 @@
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = YES;
@@ -215,15 +268,18 @@
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = "$(SRCROOT)/../imgui";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
+				USER_HEADER_SEARCH_PATHS = "";
 			};
 			name = Release;
 		};
@@ -232,6 +288,7 @@
 			buildSettings = {
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				USER_HEADER_SEARCH_PATHS = imgui;
 			};
 			name = Debug;
 		};
@@ -240,6 +297,7 @@
 			buildSettings = {
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				USER_HEADER_SEARCH_PATHS = imgui;
 			};
 			name = Release;
 		};
@@ -262,6 +320,7 @@
 				FA75B04C1D32F25600F08890 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
