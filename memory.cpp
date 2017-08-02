@@ -1,12 +1,47 @@
 
 #include "gb.h"
+#include <memory>
+#include <cassert>
+
+//http://imrannazar.com/GameBoy-Emulation-in-JavaScript:-Memory-Banking
+
+struct MBC {
+    u8* rom;
+    u32 romLength;
+    u32 romOffset;
+    u32 ramOffset;
+    u8 cartType;
+    bool ramOn;
+    u8 ram[0x2000];
+} g_mbc;
 
 u16 g_memBreakpoint = 0xFFFF;
 bool g_hitMemBreakpoint = false;
 
+void initMemoryBanks(u8* rom, u32 romLength)
+{
+    g_mbc.rom = rom;
+    g_mbc.romLength = romLength;
+    g_mbc.romOffset = 0x4000;
+    g_mbc.ramOffset = 0x0000;
+    g_mbc.cartType = rom[0x147];
+    g_mbc.ramOn = false;
+    memset(g_mbc.ram, 0, sizeof(g_mbc.ram));
+}
+
 u8 readMemory(u16 loc)
 {
-	if (loc >= 0xE000 && loc <= 0xFDFF)
+    if (loc >= 0x4000 && loc <= 0x7FFF)
+    {
+        //ROM (switched bank)
+        return g_mbc.rom[g_mbc.romOffset + (loc & 0x3FFF)];
+    }
+    else if (loc >= 0xA000 && loc <= 0xBFFF)
+    {
+        //RAM (switched bank)
+        return g_mbc.ram[g_mbc.ramOffset + (loc & 0x1FFF)];
+    }
+	else if (loc >= 0xE000 && loc <= 0xFDFF)
 	{
 		//shadow of working RAM (excluding final 512 bytes)
 		return gb.memory[loc - 0x1000];
@@ -51,7 +86,31 @@ void writeMemory(u16 loc, u8 val)
     if (loc == g_memBreakpoint)
         g_hitMemBreakpoint = true;
 
-	if (loc >= 0xE000 && loc <= 0xFDFF)
+    if (loc < 0x2000)
+    {
+        // MBC1: External RAM switch
+        switch (g_mbc.cartType)
+        {
+        case 2:
+        case 3:
+            g_mbc.ramOn = (val & 0x0F) == 0x0A;
+            break;
+        default:
+            assert(false);//unimplemented!
+            break;
+        }
+    }
+    else if (loc >= 0x4000 && loc <= 0x7FFF)
+    {
+        //ROM (switched bank)
+        
+    }
+    else if (loc >= 0xA000 && loc <= 0xBFFF)
+    {
+        //RAM (switched bank)
+        assert(false);
+    }
+	else if (loc >= 0xE000 && loc <= 0xFDFF)
 	{
 		//shadow of working RAM (excluding final 512 bytes)
 		gb.memory[loc - 0x1000] = val;

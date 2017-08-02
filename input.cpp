@@ -26,9 +26,9 @@ void GB_tickinput()
 			gb.joypadInput &= ~(1 << 3);
 		if (glwt_keydown['D'])//Select Button
 			gb.joypadInput &= ~(1 << 2);
-		if (glwt_keydown[Key_Backspace])//B Button
+		if (glwt_keydown['X'])//B Button
 			gb.joypadInput &= ~(1 << 1);
-		if (glwt_keydown[Key_Enter])//A Button
+		if (glwt_keydown['Z'])//A Button
 			gb.joypadInput &= ~(1 << 0);
 		break;
 	default:

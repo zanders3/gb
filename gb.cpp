@@ -9,6 +9,7 @@
 #include "display.h"
 #include "input.h"
 #include <cassert>
+#include "glwt.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -48,10 +49,15 @@ const u8 instructionOpCodeLength[256] =
 };
 #undef INST
 
+//http://marc.rawer.de/Gameboy/Docs/GBCPUman.pdf
+//http://www.devrs.com/gb/files/opcodes.html
+//http://bgb.bircd.org/pandocs.htm
 void GB_load(u8* rom, u32 romLength)
 {
 	memset(gb.memory, 0, sizeof(gb.memory));
-	memcpy(gb.memory, rom, romLength);
+	memcpy(gb.memory, rom, min(0x7FFF, romLength));
+    initMemoryBanks(rom, romLength);
+
 	gb.af = 0x1B0;
 	gb.bc = 0x13;
 	gb.de = 0xD8;
@@ -59,6 +65,7 @@ void GB_load(u8* rom, u32 romLength)
 	gb.sp = 0xFFFE;
 	gb.pc = 0x100;
 	gb.interruptsEnabled = false;
+    gb.stopped = false;
 
 	memset(gb.gpu.framebuffer, 0, sizeof(gb.gpu.framebuffer));
 	gb.gpu.lcdcStatus = 0;
@@ -134,7 +141,7 @@ inline void halt()
 
 inline void stop()
 {
-	undefined();
+    gb.stopped = true;
 }
 
 inline void ret()
@@ -430,28 +437,36 @@ const char* GB_disasm(u16 loc, u8& opcode, u16& nn, u8& opcodeLength)
 
 bool GB_tick(i32& ticksElapsed)
 {
-	//decode instruction
-	const u8 opcode = gb.memory[gb.pc];
-	u32 opcodeLength = instructionOpCodeLength[opcode];
-	if (opcodeLength == 2)
-		gb.nn = gb.memory[gb.pc + 1];
-	else if (opcodeLength == 3)
-		gb.nn = gb.memory[gb.pc + 1] | (gb.memory[gb.pc + 2] << 8);
+    //decode instruction
+    const u8 opcode = gb.memory[gb.pc];
 
-	//run instruction
-	gb.pc += opcodeLength;
+    if (gb.stopped)
+    {
+        gb.stopped = !(glwt_keydown['S'] || glwt_keydown['D'] || glwt_keydown['X'] || glwt_keydown['Z']);
+    }
+    else
+    {
+        u32 opcodeLength = instructionOpCodeLength[opcode];
+        if (opcodeLength == 2)
+            gb.nn = gb.memory[gb.pc + 1];
+        else if (opcodeLength == 3)
+            gb.nn = gb.memory[gb.pc + 1] | (gb.memory[gb.pc + 2] << 8);
+
+        //run instruction
+        gb.pc += opcodeLength;
 #define INST(disassembly, opCodeLength, function, opCodeTicks) case __COUNTER__: function break;
-	switch (opcode)
-	{
+        switch (opcode)
+        {
 #include "opcodes.h"
-	}
+        }
 #undef INST
-	gb.f.top = 0;//the top 4 bits of the flags register is always 0
+        gb.f.top = 0;//the top 4 bits of the flags register is always 0
+    }
 
-	bool result = GB_gputick(opcode, ticksElapsed);
+    bool result = GB_gputick(opcode, ticksElapsed);
 
-	if (gb.interruptsEnabled)
-		GB_handleinterrupts();
+    if (gb.interruptsEnabled)
+        GB_handleinterrupts();
 
 	GB_tickinput();
 

@@ -98,6 +98,8 @@ struct GB
 
 	//joypad input
 	u8 joypadInput;
+
+    bool stopped;
 	
 } extern gb;
 

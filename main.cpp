@@ -26,15 +26,18 @@ int main(int argc, char *argv[])
 {
 	FILE* file = nullptr;
 	//const char* filePath = "test_gb/01-special.gb";
-	const char* filePath = "Tetris.gb";
+    const char* filePath = "Tetris.gb";//"test/cpu_instrs/cpu_instrs.gb";
 #ifdef _WIN32
 	fopen_s(&file, filePath, "rb");
 #else
     file = fopen(filePath, "rb");
 #endif
     
-	if (file == nullptr)
-		return 1;
+    if (file == nullptr)
+    {
+        logf("Failed to load %s", filePath);
+        return 1;
+    }
 	fseek(file, 0, SEEK_END);
 	u32 len = (u32)ftell(file);
 
