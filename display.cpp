@@ -25,11 +25,6 @@ struct Tile
 	} rows[8];
 };
 
-struct Sprite
-{
-	u8 YPos, XPos, TileNum, Attributes;
-};
-
 void GB_gpuinit()
 {
 	memset(screenData, 0, sizeof(screenData));

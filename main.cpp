@@ -398,7 +398,19 @@ void imgui_drawgpu()
         }
         else if (selectedTab == 3)
         {
-            
+            set_texture(tileTexture, TILES_WIDTH, TILES_HEIGHT, GB_tiledata());
+            const Sprite* sprites = reinterpret_cast<Sprite*>(&gb.memory[0xFE00]);
+            ImGui::Columns(8);
+            for (int i = 0; i < 8*5; i++)
+            {
+                const Sprite& sprite = sprites[i];
+                ImVec2 pos = ImVec2((sprite.TileNum % 16) / 16.f, (sprite.TileNum / 16) / 24.f);
+                ImGui::Image((ImTextureID)tileTexture, ImVec2(16.f * 2.f, 16.f * 2.f), pos, ImVec2(pos.x + 1.f / 16.f, pos.y + 1.f / 24.f));
+                ImGui::SameLine();
+                ImGui::Text("%02X\n%02X\n%02X\n%02X", sprite.YPos, sprite.XPos, sprite.TileNum, sprite.Attributes);
+                ImGui::NextColumn();
+            }
+            ImGui::Columns(1);
         }
     }
     ImGui::End();
