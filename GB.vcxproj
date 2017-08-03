@@ -132,6 +132,7 @@
     <ClCompile Include="input.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="memory.cpp" />
+    <ClCompile Include="test\tests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="display.h" />
@@ -149,6 +150,7 @@
     <ClInclude Include="memory.h" />
     <ClInclude Include="opcodes.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="test\tests.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="GB.rc" />

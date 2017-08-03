@@ -218,7 +218,7 @@ inline void inc16(u16& reg)
 
 inline void inc8(u8& reg)
 {
-	gb.f.h = reg == ((u8)-1);
+	gb.f.h = reg & 0xF == 0xF;
 	reg += 1;
 	gb.f.z = reg == 0;
 	gb.f.n = false;
@@ -353,7 +353,11 @@ inline void rr8(u8& reg)//rotate r right
 
 inline void rrc8(u8& reg)//rotate right carry
 {
-	undefined();
+    gb.f.c = reg & 0x1;
+    reg = reg >> 1 | (gb.f.c ? 0x80 : 0x0);
+    gb.f.z = reg == 0;
+    gb.f.n = false;
+    gb.f.h = false;
 }
 
 inline void rl8(u8& reg)//rotate r left
@@ -365,14 +369,48 @@ inline void rlc8(u8& reg)//rotate left carry
 {
 	gb.f.c = (reg & 0x80) > 0;
     reg = (reg << 1);
+    if (gb.f.c)
+        reg |= 0x1;
 	gb.f.z = reg == 0;
 	gb.f.n = false;
 	gb.f.h = false;
 }
 
+// DAA table in page 110 of the official "Game Boy Programming Manual
+// http://www.chrisantonellis.com/files/gameboy/gb-programming-manual.pdf
 inline void daa()
 {
-	u32 a = gb.a;
+    bool carry = false;
+    if (!gb.f.n)
+    {
+        if (gb.f.c || gb.a > 0x99) 
+        {
+            gb.a = gb.a + 0x60;
+            carry = true;
+        }
+        if (gb.f.h || gb.a & 0x0F > 0x09)
+        {
+            gb.a = gb.a + 0x06;
+        }
+    }
+    else if (gb.f.c)
+    {
+        carry = true;
+        if (gb.f.h)
+            gb.a = gb.a + 0x9A;
+        else
+            gb.a = gb.a + 0xA0;
+    }
+    else if (gb.f.h)
+    {
+        gb.a = gb.a + 0xFA;
+    }
+	
+    gb.f.z = gb.a == 0;
+    gb.f.c = carry;
+    gb.f.h = false;
+
+    /*u32 a = gb.a;
 	if (!gb.f.n)
 	{
 		if (gb.f.h || (gb.a & 0xF) > 0x9)
@@ -390,7 +428,7 @@ inline void daa()
 	
 	gb.f.c = (a & 0x100) == 0x100;
 	gb.a = a & 0xFF;
-	gb.f.z = gb.a == 0;
+	gb.f.z = gb.a == 0;*/
 }
 
 inline void extops()

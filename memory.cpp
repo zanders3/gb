@@ -9,9 +9,10 @@ struct MBC {
     u8* rom;
     u32 romLength;
     u32 romOffset;
+    u32 romBank;
     u32 ramOffset;
     u8 cartType;
-    bool ramOn;
+    bool mode;
     u8 ram[0x2000];
 } g_mbc;
 
@@ -23,9 +24,10 @@ void initMemoryBanks(u8* rom, u32 romLength)
     g_mbc.rom = rom;
     g_mbc.romLength = romLength;
     g_mbc.romOffset = 0x4000;
+    g_mbc.romBank = 0;
     g_mbc.ramOffset = 0x0000;
     g_mbc.cartType = rom[0x147];
-    g_mbc.ramOn = false;
+    g_mbc.mode = false;
     memset(g_mbc.ram, 0, sizeof(g_mbc.ram));
 }
 
@@ -86,66 +88,107 @@ void writeMemory(u16 loc, u8 val)
     if (loc == g_memBreakpoint)
         g_hitMemBreakpoint = true;
 
-    if (loc < 0x2000)
+    if (loc <= 0x1FFF)
     {
-        // MBC1: External RAM switch
+        //External RAM switch
+    }
+    else if (loc >= 0x2000 && loc <= 0x3FFF)
+    {
+        // ROM Bank
+        switch (g_mbc.cartType)
+        {
+        case 1:
+        case 2:
+        case 3:
+            val &= 0x0F;
+            if (!val) val = 1;
+            g_mbc.romBank = (g_mbc.romBank & 0x60) + val;
+            g_mbc.romOffset = g_mbc.romBank * 0x4000;
+            break;
+        default:
+            assert(false);
+            break;
+        }
+    }
+    else if (loc >= 0x4000 && loc <= 0x5FFF)
+    {
+        // RAM Bank
+        switch (g_mbc.cartType)
+        {
+        case 1:
+        case 2:
+        case 3:
+            if (g_mbc.mode)
+            {
+                //RAM mode: set RAM bank
+                g_mbc.ramOffset = (val & 3) * 0x2000;
+            }
+            else
+            {
+                //ROM mode: set high bits of ROM bank
+                g_mbc.romBank = (g_mbc.romBank & 0x1F) + ((val & 3) << 5);
+                g_mbc.romOffset = g_mbc.romBank * 0x4000;
+            }
+            break;
+        default:
+            assert(false);
+            break;
+        }
+    }
+    else if (loc >= 0x6000 && loc <= 0x7FFF)
+    {
         switch (g_mbc.cartType)
         {
         case 2:
         case 3:
-            g_mbc.ramOn = (val & 0x0F) == 0x0A;
+            g_mbc.mode = val & 1;
             break;
         default:
-            assert(false);//unimplemented!
+            assert(false);
             break;
         }
     }
-    else if (loc >= 0x4000 && loc <= 0x7FFF)
-    {
-        //ROM (switched bank)
-        
-    }
     else if (loc >= 0xA000 && loc <= 0xBFFF)
     {
-        //RAM (switched bank)
-        assert(false);
+        // External RAM
+        g_mbc.ram[g_mbc.ramOffset + (loc & 0x1FFF)] = val;
     }
-	else if (loc >= 0xE000 && loc <= 0xFDFF)
-	{
-		//shadow of working RAM (excluding final 512 bytes)
-		gb.memory[loc - 0x1000] = val;
-	}
-	else if (loc >= 0xFF00 && loc < 0xFF80)
-	{
-		switch (loc)
-		{
-		case 0xFF00://Joypad R/W
-			gb.joypadInput = val;
-			break;
-		case 0xFF40://LCDC
-			gb.gpu.lcdcStatus = val;
-			break;
-		case 0xFF45://LYC
-			gb.gpu.scanlinecompare = val;
-			break;
-		case 0xFF0F://Interrupt Flag
-			gb.interruptFlag.value = val;
-			break;
-		case 0xFF46://DMA register
-			gb.gpu.dmaRegister = val;
-			break;
-		default:
-			break;
-		}
-	}
-	else if (loc < 0xFFFF)
-	{
-		gb.memory[loc] = val;
-	}
-	else//0xFFFF Interrupt Enable
-	{
-		gb.interruptReg.value = val;
-	}
+    else if (loc >= 0xE000 && loc <= 0xFDFF)
+    {
+        //shadow of working RAM (excluding final 512 bytes)
+        gb.memory[loc - 0x1000] = val;
+    }
+    else if (loc >= 0xFF00 && loc < 0xFF80)
+    {
+        switch (loc)
+        {
+        case 0xFF00://Joypad R/W
+            gb.joypadInput = val;
+            break;
+        case 0xFF40://LCDC
+            gb.gpu.lcdcStatus = val;
+            break;
+        case 0xFF45://LYC
+            gb.gpu.scanlinecompare = val;
+            break;
+        case 0xFF0F://Interrupt Flag
+            gb.interruptFlag.value = val;
+            break;
+        case 0xFF46://DMA register
+            gb.gpu.dmaRegister = val;
+            break;
+        default:
+            break;
+        }
+    }
+    else if (loc < 0xFFFF)
+    {
+        gb.memory[loc] = val;
+    }
+    else//0xFFFF Interrupt Enable
+    {
+        gb.interruptReg.value = val;
+    }
 }
 
 void writeMemory16(u16 loc, u16 val)

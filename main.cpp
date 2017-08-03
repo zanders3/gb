@@ -6,6 +6,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include "display.h"
+#include "test/tests.h"
 
 #include "imgui.h"
 #include "imgui_impl_glwt.h"
@@ -24,9 +25,11 @@ int CALLBACK WinMain(_In_  HINSTANCE hInstance, _In_  HINSTANCE hPrevInstance, _
 int main(int argc, char *argv[])
 #endif
 {
+    runtests();
+
 	FILE* file = nullptr;
 	//const char* filePath = "test_gb/01-special.gb";
-    const char* filePath = "Tetris.gb";//"test/cpu_instrs/cpu_instrs.gb";
+    const char* filePath = "Tetris.gb";//"test/cpu_instrs/individual/01-special.gb";
 #ifdef _WIN32
 	fopen_s(&file, filePath, "rb");
 #else
